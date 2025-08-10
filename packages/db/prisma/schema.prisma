@@ -7,3 +7,28 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  imageUrl  String?
+
+  sessions  Session[]
+  apiKeys   ApiKey[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String 
+  user      User     @relation(fields: [userId], references: [id])
+  expires   DateTime
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  revoked   Boolean  @default(false)
+}
