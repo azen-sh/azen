@@ -31,4 +31,14 @@ model ApiKey {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Memory {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  metadata  Json
+  embedding Unsupported("vector(1536)")
+  createdAt DateTime @default(now())
 }
