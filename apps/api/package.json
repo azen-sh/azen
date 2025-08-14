@@ -5,11 +5,14 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "dev": "bun src/index.ts",
-    "start": "bun dist/index.js"
+    "dev": "bun run src/index.ts",
+    "start": "bun run dist/index.js"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "hono": "^4.9.1"
   }
 }
