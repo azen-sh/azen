@@ -9,57 +9,74 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(uuid())
-  email             String   @unique
-  name              String?
-  image             String?
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  emailVerified         Boolean   @default(false)
+  name                  String?
+  image                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  sessions          Session[]
-  accounts          Account[]
-  apiKeys           ApiKey[]
+  sessions              Session[]
+  accounts              Account[]
+  apiKeys               ApiKey[]
 }
 
 model Session {
-  id                String   @id @default(uuid())
-  userId            String 
-  user              User     @relation(fields: [userId], references: [id])
-  expires           DateTime
+  id                    String   @id @default(uuid())
+  token                 String   @unique
+  ipAddress             String?
+  userAgent             String?
+  userId                String 
+  user                  User     @relation(fields: [userId], references: [id])
+  expiresAt             DateTime
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model Account {
-  id                String    @id @default(uuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id])
-  provider          String
-  providerAccountId String
+  id                    String    @id @default(uuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  providerId            String
+  accountId             String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  scope                 String?
+  password              String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  @@unique([provider, providerAccountId])
+  @@unique([providerId, accountId])
 }
 
 model Verification {
-  id                String    @id @default(uuid())
-  identifier        String
-  value             String    @unique
-  expiresAt         DateTime
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt    
+  id                    String    @id @default(uuid())
+  identifier            String
+  value                 String    @unique
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt    
 
   @@unique([identifier, value])
 }
 
 model ApiKey {
-  id                String   @id @default(uuid())
-  key               String   @unique
-  userId            String
-  user              User     @relation(fields: [userId], references: [id])
-  revoked           Boolean  @default(false)
-  createdAt         DateTime @default(now())
+  id                    String   @id @default(uuid())
+  key                   String   @unique
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  revoked               Boolean  @default(false)
+  createdAt             DateTime @default(now())
 }
 
 model Memory {
-  id                String   @id @default(uuid())
-  userId            String
-  content           String
-  metadata          Json
-  createdAt         DateTime @default(now())
+  id                    String   @id @default(uuid())
+  userId                String
+  content               String
+  metadata              Json
+  createdAt             DateTime @default(now())
 }
