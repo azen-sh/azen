@@ -1,12 +1,15 @@
 import { headers } from "next/headers";
 import { auth } from "../lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function Dashboard() {
-    const session = await auth.api.getSession({
+    const response = await auth.api.getSession({
         headers: await headers()
     });
 
-    console.log(session);
+    if(!response?.user) {
+        redirect("/");
+    };
 
     return (
         <div className="bg-black flex justify-center items-center text-white min-h-screen text-2xl">
