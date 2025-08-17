@@ -8,7 +8,8 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET"
+        "GOOGLE_CLIENT_SECRET",
+        "BETTER_AUTH_SECRET"
       ]
     },
     "lint": {
@@ -22,7 +23,8 @@
       "persistent": true,
       "env": [
         "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET"
+        "GOOGLE_CLIENT_SECRET",
+        "BETTER_AUTH_SECRET"
       ]
     }
   }
