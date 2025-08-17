@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signIn } from "./lib/auth-client";
+import { signIn, signOut } from "./lib/auth-client";
 
 export default function Home() {
   return (
@@ -11,7 +11,9 @@ export default function Home() {
       signIn.social({ provider: 'google', callbackURL: '/' })}
       className="bg-white text-black px-4 py-2 cursor-pointer hover:bg-white">Sign In</Button>
 
-      <Button className="bg-white text-black cursor-pointer hover:bg-white">Sign Out</Button>
+      <Button 
+      onClick={() => signOut()}
+      className="bg-white text-black cursor-pointer hover:bg-white">Sign Out</Button>
     </div>
   );
 }
