@@ -66,11 +66,20 @@ model Verification {
 
 model ApiKey {
   id                    String   @id @default(uuid())
-  key                   String   @unique
+  name                  String?  
+  start                 String?
+  prefix                String?
+  key                   String
+  enabled               Boolean   @default(true)   
   userId                String
   user                  User     @relation(fields: [userId], references: [id])
-  revoked               Boolean  @default(false)
+
+  expiresAt             DateTime?
   createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  permissions           String?
+  metadata              Json?
 }
 
 model Memory {
