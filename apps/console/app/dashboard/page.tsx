@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "../lib/auth";
 import { redirect } from "next/navigation";
+import ApiKeysManager from "../components/apiKeysManager";
 
 export default async function Dashboard() {
     const response = await auth.api.getSession({
@@ -12,8 +13,6 @@ export default async function Dashboard() {
     };
 
     return (
-        <div className="bg-black flex justify-center items-center text-white min-h-screen text-2xl">
-            <h1>Dashboard</h1>
-        </div>
+        <ApiKeysManager />
     );
 }
