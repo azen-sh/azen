@@ -19,7 +19,7 @@ model User {
 
   sessions              Session[]
   accounts              Account[]
-  apiKeys               ApiKey[]
+  apiKeys               apikey[]
 }
 
 model Session {
@@ -64,15 +64,26 @@ model Verification {
   @@unique([identifier, value])
 }
 
-model ApiKey {
+model apikey {
   id                    String   @id @default(uuid())
   name                  String?  
   start                 String?
   prefix                String?
-  key                   String
-  enabled               Boolean   @default(true)   
+  key                   String   
   userId                String
   user                  User     @relation(fields: [userId], references: [id])
+
+  refillInterval        Int?
+  refillAmount          Int?
+  lastRefillAt          DateTime?
+
+  enabled               Boolean  @default(true)
+  rateLimitEnabled      Boolean  @default(false)
+  rateLimitTimeWindow   Int?
+  rateLimitMax          Int?
+  requestCount          Int      @default(0)
+  remaining             Int?
+  lastRequest           DateTime?
 
   expiresAt             DateTime?
   createdAt             DateTime @default(now())

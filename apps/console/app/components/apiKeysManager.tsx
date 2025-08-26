@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 
 export default function ApiKeysManager() {
     const [loading, setLoading] = useState(false);
-    const [keys, setKeys] = useState<any[]>();
+    const [createdKey, setCreatedKey] = useState<string | null>(null);
+    const [keys, setKeys] = useState<any[] | null>();
+
+    async function loadKeys() {
+        try {
+            const res = await authClient.apiKey.list();
+            setKeys(res.data ?? []);
+        } catch (e) {
+            console.error(e);
+        };
+    };
 
     async function createKey() {
         setLoading(true);
@@ -14,21 +24,61 @@ export default function ApiKeysManager() {
             const res = await authClient.apiKey.create({
                 name: `console-${Date.now()}`,
                 expiresIn: 60 * 60 * 24 * 90,
+                prefix: 'proj_sk_',
                 metadata: { createdFrom: 'console' },
             });
-            console.log(res);
+            console.log(res.data);
+            setCreatedKey(res.data?.key ?? null);
+            await loadKeys();
         } catch (e) {
             console.error(e);
+        } finally {
+            setLoading(false);
         };
     };
 
+    async function revokeKey(keyId: string) {
+        await authClient.apiKey.delete({ keyId });
+        await loadKeys();
+    };
+
     return (
-        <div className="bg-black flex flex-col justify-center items-center text-white min-h-screen text-2xl">
+        <div className="bg-black flex flex-col justify-center items-center min-h-screen text-white text-2xl">
             <h1>Api Key manager</h1>
             <Button 
             className="bg-white text-black"
             onClick={createKey}
-            >Create api key</Button>
+            disabled={loading}
+            >
+                {loading ? "Creating" : "Create Api Key"}
+            </Button>
+            
+            {createdKey && (
+                <div>
+                  <strong>Copy this key now — you will see it only once</strong>
+                  <pre>{createdKey}</pre>
+                  <button
+                  onClick={() => navigator.clipboard.writeText(createdKey)}  
+                  >
+                    Copy
+                </button>
+                </div>
+            )}
+
+            <h4>Your keys</h4>
+             <ul>
+                {keys?.map(k => (
+                    <li key={k.id}>
+                      <div>{k.name}</div>
+                      <Button 
+                      className="bg-white text-black"
+                      onClick={() => revokeKey(k.id)}
+                      >
+                        Revoke key
+                      </Button>
+                    </li>
+                ))}
+             </ul>
         </div>
     )
 };
