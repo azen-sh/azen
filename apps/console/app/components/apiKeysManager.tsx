@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth-client";
 import { Button } from "@/components/ui/button";
 
@@ -41,6 +41,10 @@ export default function ApiKeysManager() {
         await authClient.apiKey.delete({ keyId });
         await loadKeys();
     };
+
+    useEffect(() => {
+        
+    }, []);
 
     return (
         <div className="bg-black flex flex-col justify-center items-center min-h-screen text-white text-2xl">
