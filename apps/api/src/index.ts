@@ -2,7 +2,7 @@ import { Hono} from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import apiKeysRoute from "./routes/keys"
-import { verifyApiKey } from "./lib/verifyApiKey";
+import { verifyApiKey } from "./middlewares/verifyKey";
 
 const app = new Hono();
 const PORT = Number(process.env.PORT || 8080);
