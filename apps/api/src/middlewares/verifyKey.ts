@@ -10,7 +10,7 @@ export const verifyApiKey = createMiddleware(async (c, next) => {
 
     if(!response || !response.valid) {
         throw new HTTPException(403, { message: response.error?.message ?? "Invalid API key"});
-    }
+    };
 
     c.set("userId", response.key?.userId);
     c.set("apiKeyId", response.key?.id);

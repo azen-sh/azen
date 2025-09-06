@@ -17,8 +17,10 @@ app.get("/", (c) => {
 });
 
 app.get("/protected", verifyApiKey, (c) => {
+    const userId = c.get("userId");
+    const apiKeyId = c.get("apiKeyId");
     return c.json({
-        status: "all good",
+        status: `all good, userId: ${userId}, apiKeyId: ${apiKeyId}`,
     });
 });
 
