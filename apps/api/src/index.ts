@@ -1,7 +1,6 @@
 import { Hono} from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import apiKeysRoute from "./routes/keys"
 import { verifyApiKey } from "./middlewares/verifyKey";
 
 const app = new Hono();
@@ -23,8 +22,6 @@ app.get("/protected", verifyApiKey, (c) => {
         status: `all good, userId: ${userId}, apiKeyId: ${apiKeyId}`,
     });
 });
-
-app.route("/api/keys", apiKeysRoute);
 
 export default {
     port: PORT,
