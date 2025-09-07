@@ -20,6 +20,8 @@ model User {
   sessions              Session[]
   accounts              Account[]
   apiKeys               apikey[]
+  memories              Memory[]          
+  jobs                  EmbeddingJob[]
 }
 
 model Session {
@@ -94,9 +96,27 @@ model apikey {
 }
 
 model Memory {
-  id                    String   @id @default(uuid())
+  id                    String   @id @default(cuid())
   userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   content               String
   metadata              Json
   createdAt             DateTime @default(now())
+  embedded              Boolean  @default(false)
+
+  @@index([userId])
+}
+
+model EmbeddingJob {
+  id                    String     @id @default(cuid())
+  memoryId              String
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status                String     @default("pending")
+  attempts              Int        @default(0)
+  lastError             String?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  @@index([status])
 }
