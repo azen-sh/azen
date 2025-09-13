@@ -10,6 +10,9 @@ export const auth = betterAuth({
         apiKey({
             apiKeyHeaders: ['azen-api-key'],
             enableMetadata: true,
+            rateLimit: {
+                enabled: false,
+            },
             permissions: {
                 defaultPermissions: {
                     file: ['read'],

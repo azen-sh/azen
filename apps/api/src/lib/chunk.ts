@@ -9,6 +9,5 @@ export function chunkText(text: string, maxTokens = 512, overlap = 50) {
         const sliced = tokens.slice(i, i + maxTokens);
         chunks.push(enc.decode(sliced));
     };
-    console.log(chunks);
     return chunks;
 }; 
