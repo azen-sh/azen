@@ -111,7 +111,7 @@ model EmbeddingJob {
   id                    String     @id @default(cuid())
   memoryId              String
   userId                String
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   status                String     @default("pending")
   attempts              Int        @default(0)
   lastError             String?
