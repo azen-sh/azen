@@ -12,4 +12,5 @@ export async function embedBatch(texts: string[]) {
         model: "text-embedding-3-small",
         input: texts,
     });
+    return res.data.map
 };
