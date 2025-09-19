@@ -1,5 +1,6 @@
 import { prisma } from 'db';
 import { chunkText } from "../src/lib/chunk";
+import { embedBatch, upsertVectors } from "../src/lib/vector";
 
 const POLL_INTERVAL = 2000;
 const BATCH_SIZE = 5;
@@ -15,7 +16,8 @@ async function processJob(job) {
                 attempts: job.attempts + 1,
             },
         });
-        const mem = await prisma.memory.findUnique({ where: { id: job.id } });
+        const mem = await prisma.memory.findUnique({ where: { id: job.memoryId } });
+        console.log(mem);
         if(!mem) {
             await prisma.embeddingJob.update({ 
                 where: { id: job.id }, 
@@ -27,6 +29,12 @@ async function processJob(job) {
             return
         };
 
+        const chunks = chunkText(mem.content);
+        console.log(chunks);
+        const vectors = await embedBatch(chunks);
+        console.log(vectors);
+
+        await upsertVectors();
     } catch (e) {
         console.error("embedding worker error:", e);
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: 'failed', lastError: String(e) }, })

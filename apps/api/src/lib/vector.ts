@@ -12,5 +12,9 @@ export async function embedBatch(texts: string[]) {
         model: "text-embedding-3-small",
         input: texts,
     });
-    return res.data.map
+    return res.data.map(d => d.embedding as number[]);
+};
+
+export async function upsertVectors() {
+    
 };

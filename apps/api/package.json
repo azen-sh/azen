@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "bun run src/index.ts",
-    "start": "bun run dist/index.js"
+    "start": "bun run dist/index.js",
+    "worker": "bun run worker/embedding-worker.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
