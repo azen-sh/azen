@@ -17,7 +17,6 @@ router.post("/", async (c) => {
 
     const body = await c.req.json();
     const parsed = MemoryInputSchema.safeParse(body);
-    console.log(parsed);
     if(!parsed.success) {
         return c.json({ error: 'Invalid Request', details: parsed.error.format() }, 400);
     };

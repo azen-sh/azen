@@ -17,7 +17,6 @@ async function processJob(job) {
             },
         });
         const mem = await prisma.memory.findUnique({ where: { id: job.memoryId } });
-        console.log(mem);
         if(!mem) {
             await prisma.embeddingJob.update({ 
                 where: { id: job.id }, 
@@ -33,8 +32,16 @@ async function processJob(job) {
         console.log(chunks);
         const vectors = await embedBatch(chunks);
         console.log(vectors);
+        const ids = chunks.map((_, i) => `${mem.id}::${i}`);
+        console.log(ids);
 
-        await upsertVectors();
+        //const metadata = mem.metadata as { namespace?: string, dedupKey?: string };
+        //const namespace = metadata?.namespace || `user-${mem.userId}`;
+
+        //await upsertVectors(ids, vectors, namespace);
+
+        await prisma.memory.update({ where: { id: mem.id }, data: { embedded: true, }, });
+        await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: "done" }, });
     } catch (e) {
         console.error("embedding worker error:", e);
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: 'failed', lastError: String(e) }, })

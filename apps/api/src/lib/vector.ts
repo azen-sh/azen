@@ -15,6 +15,7 @@ export async function embedBatch(texts: string[]) {
     return res.data.map(d => d.embedding as number[]);
 };
 
-export async function upsertVectors() {
-    
-};
+export async function upsertVectors(ids: string[], vectors: number[][], namespace: string) {
+    const upserts = ids.map((id, i) => ({ id, values: vectors[i] }));
+    await index.namespace(namespace).upsert(upserts);
+  }
