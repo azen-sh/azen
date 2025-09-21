@@ -7,7 +7,6 @@ const router = new Hono();
 
 const MemoryInputSchema = z.object({
     text: z.string().min(1),
-    namespace: z.string().optional(),
     dedupKey: z.string().optional(),
 });
 
@@ -20,7 +19,7 @@ router.post("/", async (c) => {
     if(!parsed.success) {
         return c.json({ error: 'Invalid Request', details: parsed.error.format() }, 400);
     };
-    const { text, namespace, dedupKey } = parsed.data;
+    const { text, dedupKey } = parsed.data;
     
     if(dedupKey) {
         const existing = await prisma.memory.findFirst({
@@ -40,7 +39,7 @@ router.post("/", async (c) => {
         data: {
             userId,
             content: text,
-            metadata: { namespace: namespace ?? null, dedupKey: dedupKey ?? null, },
+            metadata: { dedupKey: dedupKey ?? null, },
         },
     });
 

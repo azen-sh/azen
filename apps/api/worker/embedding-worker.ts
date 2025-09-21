@@ -35,10 +35,9 @@ async function processJob(job) {
         const ids = chunks.map((_, i) => `${mem.id}::${i}`);
         console.log(ids);
 
-        //const metadata = mem.metadata as { namespace?: string, dedupKey?: string };
-        //const namespace = metadata?.namespace || `user-${mem.userId}`;
+        const namespace = `user-${mem.userId}`;
 
-        //await upsertVectors(ids, vectors, namespace);
+        await upsertVectors(ids, vectors, namespace);
 
         await prisma.memory.update({ where: { id: mem.id }, data: { embedded: true, }, });
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: "done" }, });
