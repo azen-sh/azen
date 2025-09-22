@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { Pinecone } from "@pinecone-database/pinecone";
+import { error } from "better-auth/api";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const pinecone = new Pinecone({
@@ -16,6 +17,10 @@ export async function embedBatch(texts: string[]) {
 };
 
 export async function upsertVectors(ids: string[], vectors: number[][], namespace: string) {
+    if(ids.length !== vectors.length) {
+        throw new Error("ids and vectors length mismatch");
+    };
+
     const upserts = ids.map((id, i) => ({ id, values: vectors[i] }));
     await index.namespace(namespace).upsert(upserts);
   }

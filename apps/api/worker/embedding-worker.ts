@@ -29,11 +29,8 @@ async function processJob(job) {
         };
 
         const chunks = chunkText(mem.content);
-        console.log(chunks);
         const vectors = await embedBatch(chunks);
-        console.log(vectors);
         const ids = chunks.map((_, i) => `${mem.id}::${i}`);
-        console.log(ids);
 
         const namespace = `user-${mem.userId}`;
 
