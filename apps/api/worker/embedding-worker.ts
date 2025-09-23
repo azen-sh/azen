@@ -4,6 +4,7 @@ import { embedBatch, upsertVectors } from "../src/lib/vector";
 
 const POLL_INTERVAL = 2000;
 const BATCH_SIZE = 5;
+const MAX_ATTEMPTS = 5;
 
 async function processJob(job) {
     try {
@@ -40,6 +41,8 @@ async function processJob(job) {
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: "done" }, });
     } catch (e) {
         console.error("embedding worker error:", e);
+        const attempts = job.attempts 
+
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: 'failed', lastError: String(e) }, })
     };
 };
