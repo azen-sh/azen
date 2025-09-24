@@ -6,6 +6,13 @@ const POLL_INTERVAL = 2000;
 const BATCH_SIZE = 5;
 const MAX_ATTEMPTS = 5;
 
+function backoffMs(attempt: number) {
+    const base = 2000; 
+    const raw = base * Math.pow(2, Math.max(0, attempt - 1));
+    const jitter = Math.floor(Math.random() * 1000); 
+    return raw + jitter;
+  }
+
 async function processJob(job) {
     try {
         await prisma.embeddingJob.update({
@@ -41,16 +48,39 @@ async function processJob(job) {
         await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: "done" }, });
     } catch (e) {
         console.error("embedding worker error:", e);
-        const attempts = job.attempts 
+        const attempts = (job.attempts ?? 0) + 1;
 
-        await prisma.embeddingJob.update({ where: { id: job.id }, data: { status: 'failed', lastError: String(e) }, })
+        if(attempts < MAX_ATTEMPTS) {
+            const delay = backoffMs(attempts);
+            const availableAt = new Date(Date.now() + delay);
+
+            await prisma.embeddingJob.update({
+                where: {
+                    id: job.id,
+                },
+                data: {
+                    status: 'pending',
+                    attempts,
+                    availableAt,
+                    lastError: String(e),
+                },
+            });
+        } else {
+            await prisma.embeddingJob.update({
+                where: { id: job.id },
+                data: { status: 'failed', attempts, lastError: String(e) }
+              });
+        };
     };
 };
 
 async function poll() {
+    const now = new Date();
     while(true) {
         const jobs = await prisma.embeddingJob.findMany({
-            where: { status: 'pending' },
+            where: { status: 'pending',
+                     availableAt: { lte: now },
+             },
             orderBy: { createdAt: 'asc' },
             take: BATCH_SIZE,
         });
