@@ -78,8 +78,12 @@ async function poll() {
     const now = new Date();
     while(true) {
         const jobs = await prisma.embeddingJob.findMany({
-            where: { status: 'pending',
-                     availableAt: { lte: now },
+            where: { 
+                status: 'pending',
+                OR: [
+                    { availableAt: null },
+                    { availableAt: { lte: now }, },
+                ],
              },
             orderBy: { createdAt: 'asc' },
             take: BATCH_SIZE,
