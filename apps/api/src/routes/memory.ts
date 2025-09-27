@@ -64,14 +64,14 @@ router.get("/", async (c) => {
     if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
 
     const page = Math.max(1, Number(c.req.query('page') ?? 1));
-    const per = Math.min(Math.max(1, Number(c.req.query('per')) ?? 20), 100);
+    const per = Math.min(Math.max(1, Number(c.req.query('per') ?? 20)), 100);
 
-    const items = prisma.memory.findMany({
+    const items = await prisma.memory.findMany({
         where: {
             userId,
         },
         orderBy: { createdAt: 'desc' },
-        skip: (page -1) * per,
+        skip: (page - 1) * per,
         take: per,
         select: {
             id: true,
