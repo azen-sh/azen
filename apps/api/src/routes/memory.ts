@@ -95,4 +95,17 @@ router.get('/:id', async(c) => {
     return c.json(rec);
 });
 
+router.delete("/:id", async(c) => {
+    const userId = c.get('userId');
+    if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
+
+    const memoryId = c.req.param('id');
+    const rec = await prisma.memory.findUnique({ where: { id: memoryId } });
+    if (!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
+
+    await prisma.memory.delete({ where: { id: memoryId } });
+
+    return c.json({ ok: true });
+});
+
 export default router;
