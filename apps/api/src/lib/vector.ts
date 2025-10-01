@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { error } from "better-auth/api";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const pinecone = new Pinecone({
@@ -23,4 +22,13 @@ export async function upsertVectors(ids: string[], vectors: number[][], namespac
 
     const upserts = ids.map((id, i) => ({ id, values: vectors[i] }));
     await index.namespace(namespace).upsert(upserts);
-  }
+};
+
+export async function queryVectors(query: number[], topK = 5, namespace: string) {
+    const res = await index.namespace(namespace).query({
+        vector: query,
+        topK,
+        includeMetadata: false,
+    })
+    return res.matches ?? [];
+};
