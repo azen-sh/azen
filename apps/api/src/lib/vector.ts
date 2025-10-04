@@ -29,6 +29,7 @@ export async function queryVectors(query: number[], topK = 5, namespace: string)
         vector: query,
         topK,
         includeMetadata: false,
-    })
+    });
+    console.log("queryVectors res", res);
     return res.matches ?? [];
 };
