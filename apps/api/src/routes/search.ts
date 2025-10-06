@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { embedBatch } from "../lib/vector";
 import { queryVectors } from "../lib/vector";
+import { prisma } from "db";
 
 const router = new Hono();
 
@@ -21,13 +22,31 @@ router.post("/", async (c) => {
     };
 
     const { query, topK = 5 } = parsed.data;
-    const [qEmb] = await embedBatch([query]);
-    console.log("qEmb", qEmb);
-    if(!qEmb) throw new HTTPException(500, { message: "Failed to embed query" });
-    const matches = await queryVectors(qEmb, topK, `user-${userId}`);
-    console.log("matches",matches);
 
-    return c.json({ ok: true,});
+    const [qEmb] = await embedBatch([query]);
+    if(!qEmb) throw new HTTPException(500, { message: "Failed to embed query" });
+
+    const matches = await queryVectors(qEmb, topK, `user-${userId}`);
+
+    const memIds = Array.from(
+        new Set(
+            matches
+            .map(m => m.id?.split("::")[0])
+            .filter((id): id is string => !!id)
+        ));
+    console.log("memIds:", memIds);
+    const mems = memIds.length
+        ? await prisma.memory.findMany({
+            where: {
+                id: { in: memIds}, 
+                userId,
+            },
+        })
+        : [];
+
+    const orderedMems = memIds.map(id => mems.find(m => m.id === id)).filter(Boolean);    
+    console.log("ordered memories:", orderedMems);
+    return c.json({ memories: orderedMems, rawMatches: matches });
 });
 
 export default router;

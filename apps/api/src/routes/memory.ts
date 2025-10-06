@@ -81,7 +81,7 @@ router.get("/", async (c) => {
             embedded: true,
         },
     });
-    return c.json ({ items, page, per });
+    return c.json ({ memories: items, page, per });
 });
 
 router.get('/:id', async(c) => {
