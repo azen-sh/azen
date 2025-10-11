@@ -2,6 +2,7 @@ import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { prisma } from 'db';
+import { embeddingsQueue } from "../queue/embedding-queue";
 
 const router = new Hono();
 
@@ -43,12 +44,24 @@ router.post("/", async (c) => {
         },
     });
 
-    await prisma.embeddingJob.create({
+    const jobRec = await prisma.embeddingJob.create({
         data: {
             memoryId: rec.id,
             userId,
             status: 'pending',
         },
+    });
+
+    await embeddingsQueue.add('embed', {
+        jobId: jobRec.id,
+        memoryId: rec.id,
+        text: rec.content,
+        userId,
+    }, {
+        attempts: Number(process.env.DLQ_ATTEMPTS ?? 5),
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: 1000,
+        removeOnFail: 10000,
     });
 
     return c.json({
