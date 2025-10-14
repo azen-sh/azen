@@ -1,4 +1,3 @@
-// src/workers/embeddings.worker.ts
 import { Worker } from 'bullmq';
 import { redisConnection } from '../queue/embedding-queue';
 import { processEmbeddingJob } from '../jobs/embed-job';
