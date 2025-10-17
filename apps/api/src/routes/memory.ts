@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { prisma } from 'db';
 import { embeddingsQueue } from "../queue/embedding-queue";
+import { deleteMemoryVectors } from "../lib/vector";
 
 const router = new Hono();
 
@@ -116,7 +117,22 @@ router.delete("/:id", async(c) => {
     const rec = await prisma.memory.findUnique({ where: { id: memoryId } });
     if (!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
 
-    await prisma.memory.delete({ where: { id: memoryId } });
+    const namespace = `user-${rec.userId}`;
+
+    try {
+        await deleteMemoryVectors(rec.id, namespace);
+    } catch (err) {
+        console.error('Failed to delete vectors for memory', err);
+        return c.json({ error: "failed to delete vectors" }, 500);
+    };
+
+    try {
+        await prisma.memory.delete({ where: { id: memoryId }, });
+        await prisma.embeddingJob.deleteMany({ where: { memoryId: memoryId }, });
+    } catch (err) {
+        console.error("Failed to delete memory row after deleting vectors", err);
+        return c.json({ error: "Failed to delete memory record" }, 500);
+    };
 
     return c.json({ ok: true });
 });

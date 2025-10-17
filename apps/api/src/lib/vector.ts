@@ -15,12 +15,16 @@ export async function embedBatch(texts: string[]) {
     return res.data.map(d => d.embedding as number[]);
 };
 
-export async function upsertVectors(ids: string[], vectors: number[][], namespace: string) {
+export async function upsertVectors(ids: string[], vectors: number[][], namespace: string, memoryID: string) {
     if(ids.length !== vectors.length) {
         throw new Error("ids and vectors length mismatch");
     };
 
-    const upserts = ids.map((id, i) => ({ id, values: vectors[i] }));
+    const upserts = ids.map((id, i) => ({ 
+        id, 
+        values: vectors[i],
+        metadata: { memoryId: memoryID, chunkIndex: i },
+    }));
     await index.namespace(namespace).upsert(upserts);
 };
 
@@ -31,4 +35,8 @@ export async function queryVectors(query: number[], topK = 5, namespace: string)
         includeMetadata: false,
     });
     return res.matches ?? [];
+};
+
+export async function deleteMemoryVectors(memoryId: string, namespace: string) {
+    await index.namespace(namespace).deleteMany({ filter: { memoryId } });
 };

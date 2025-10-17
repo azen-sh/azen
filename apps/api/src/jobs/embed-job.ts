@@ -19,8 +19,9 @@ export async function processEmbeddingJob(payload: EmbedPayLoad) {
 
     const ids = chunks.map((_, i) => `${payload.memoryId}::${i}`);
     const namespace = `user-${payload.userId}`;
+    const memoryID = payload.memoryId;
 
-    await upsertVectors(ids, vectors, namespace);
+    await upsertVectors(ids, vectors, namespace, memoryID);
 
     //to update metadata in postgres db - 
     await prisma.memory.update({
