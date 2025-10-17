@@ -37,6 +37,6 @@ export async function queryVectors(query: number[], topK = 5, namespace: string)
     return res.matches ?? [];
 };
 
-export async function deleteMemoryVectors(memoryId: string, namespace: string) {
-    await index.namespace(namespace).deleteMany({ filter: { memoryId } });
+export async function deleteMemoryVectors(memoryID: string, namespace: string) {
+    await index.namespace(namespace).deleteMany({ memoryId: { $eq: memoryID } });
 };
