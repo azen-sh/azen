@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "bun run src/index.ts",
-    "start": "bun run dist/index.js",
+    "start": "bun run dist/src/index.js",
     "dev:worker": "bun run worker.ts",
     "start:worker": "bun run dist/worker.js"
   },
