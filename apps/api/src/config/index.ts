@@ -1,4 +1,14 @@
-export const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const NODE_ENV = process.env.NODE_ENV ?? 'development';
+const isProd = NODE_ENV === 'production';
+
+export const PINECONE_INDEX = isProd 
+    ? process.env.PINECONE_INDEX_PROD 
+    : process.env.PINECONE_INDEX_DEV;
+
+export const REDIS_URL = isProd 
+    ? process.env.REDIS_URL_PROD 
+    : process.env.REDIS_URL_DEV ?? 'redis://localhost:6379';
+
 export const QUEUE_NAME = process.env.QUEUE_NAME || 'embeddings';
 export const WORKER_CONCURRENCY = Number(process.env.WORKER_CONCURRENCY ?? 4);
 export const BATCH_SIZE = Number(process.env.BATCH_SIZE ?? 5);

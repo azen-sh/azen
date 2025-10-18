@@ -1,11 +1,12 @@
 import OpenAI from "openai";
 import { Pinecone } from "@pinecone-database/pinecone";
+import { PINECONE_INDEX } from "../config";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY as string });
 const pinecone = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY as string,
 });
-const index = pinecone.index(process.env.PINECONE_INDEX as string);
+const index = pinecone.index(PINECONE_INDEX as string);
 
 export async function embedBatch(texts: string[]) {
     const res = await openai.embeddings.create({

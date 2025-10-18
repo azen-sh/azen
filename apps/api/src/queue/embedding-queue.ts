@@ -2,7 +2,7 @@ import { Queue } from "bullmq";
 import { QUEUE_NAME, REDIS_URL } from "../config";
 import IORedis from "ioredis";
 
-export const redisConnection = new IORedis(REDIS_URL, {
+export const redisConnection = new IORedis(REDIS_URL as string, {
     maxRetriesPerRequest: null,
 });
 
