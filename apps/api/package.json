@@ -5,10 +5,10 @@
   "private": true,
   "scripts": {
     "build": "tsc -b",
-    "dev": "bun run src/index.ts",
-    "start": "bun dist/src/index.js",
-    "dev:worker": "bun run worker.ts",
-    "start:worker": "bun run dist/worker.js"
+    "dev": "bun src/index.ts",
+    "start": "bun ./dist/src/index.js",
+    "dev:worker": "bun worker.ts",
+    "start:worker": "bun dist/worker.js"
   },
   "devDependencies": {
     "@types/bun": "latest",
