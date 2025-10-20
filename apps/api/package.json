@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "dev": "bun run src/index.ts",
     "start": "bun run dist/src/index.js",
     "dev:worker": "bun run worker.ts",
