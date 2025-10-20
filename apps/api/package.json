@@ -4,11 +4,11 @@
   "main": "dist/index.js",
   "private": true,
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc",
     "dev": "bun src/index.ts",
     "start": "bun ./dist/src/index.js",
     "dev:worker": "bun worker.ts",
-    "start:worker": "bun dist/worker.js"
+    "start:worker": "bun ./dist/worker.js"
   },
   "devDependencies": {
     "@types/bun": "latest",
