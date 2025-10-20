@@ -1,7 +1,7 @@
 import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { prisma } from 'db';
+import { prisma } from "db";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
 
@@ -22,7 +22,7 @@ router.post("/", async (c) => {
         return c.json({ error: 'Invalid Request', details: parsed.error.format() }, 400);
     };
     const { text, dedupKey } = parsed.data;
-    
+
     if(dedupKey) {
         const existing = await prisma.memory.findFirst({
             where: {

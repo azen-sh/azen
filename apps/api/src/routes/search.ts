@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
+import { prisma } from "db";
 import { embedBatch } from "../lib/vector";
 import { queryVectors } from "../lib/vector";
-import { prisma } from "db";
 
 const router = new Hono();
 

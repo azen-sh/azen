@@ -3,17 +3,21 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "postinstall": "prisma generate"
+  },
   "exports": {
     ".": "./index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "prisma": "^6.16.2"
+    "prisma": "^6.17.1"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2"
+    "@prisma/client": "^6.17.1",
+    "@prisma/extension-accelerate": "^2.0.2"
   }
 }
