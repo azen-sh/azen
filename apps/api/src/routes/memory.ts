@@ -1,7 +1,8 @@
 import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { prisma } from "db";
+import { db, schema, sql, eq, desc } from "db";
+import { randomUUID } from "crypto";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
 
@@ -11,6 +12,8 @@ const MemoryInputSchema = z.object({
     text: z.string().min(1),
     dedupKey: z.string().optional(),
 });
+
+const { memory, embeddingJob } = schema;
 
 router.post("/", async (c) => {
     const userId = c.get('userId');
@@ -24,34 +27,44 @@ router.post("/", async (c) => {
     const { text, dedupKey } = parsed.data;
 
     if(dedupKey) {
-        const existing = await prisma.memory.findFirst({
-            where: {
-                userId,
-                metadata: {
-                    path: ['dedupKey'], equals: dedupKey,
-                },
-            },
-        });
+        const [existing] = await db
+        .select()
+        .from(memory)
+        .where(sql`(metadata->>'dedupKey') = ${dedupKey}`)
+        .limit(1);
+
         if(existing) {
             return c.json({ ok: true, memoryId: existing.id, duplicated: true, });
         };
     };
 
-    const rec = await prisma.memory.create({
-        data: {
-            userId,
-            content: text,
-            metadata: { dedupKey: dedupKey ?? null, },
-        },
-    });
+    const memId = randomUUID();
+    const [rec] = await db
+    .insert(memory)
+    .values({
+        id: memId,
+        userId,
+        content: text,
+        metadata: dedupKey ? { dedupKey } : null,
+    }).returning();
 
-    const jobRec = await prisma.embeddingJob.create({
-        data: {
-            memoryId: rec.id,
-            userId,
-            status: 'pending',
-        },
-    });
+    if(!rec) {
+        throw new HTTPException(500, { message: "Failed to create memory record" });
+    };
+
+    const jobId = randomUUID();
+    const [jobRec] = await db
+    .insert(embeddingJob)
+    .values({
+        id: jobId,
+        memoryId: rec.id,
+        userId,
+        status: "queued",
+    }).returning();
+
+    if(!jobRec) {
+        throw new HTTPException(500, { message: "Failed to create embedding job record" });
+    };
 
     await embeddingsQueue.add('embed', {
         jobId: jobRec.id,
@@ -80,21 +93,21 @@ router.get("/", async (c) => {
     const page = Math.max(1, Number(c.req.query('page') ?? 1));
     const per = Math.min(Math.max(1, Number(c.req.query('per') ?? 20)), 100);
 
-    const items = await prisma.memory.findMany({
-        where: {
-            userId,
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * per,
-        take: per,
-        select: {
-            id: true,
-            content: true,
-            metadata: true,
-            createdAt: true,
-            embedded: true,
-        },
-    });
+    const offset = (page - 1) * per;
+
+    const items = await db
+    .select({
+        id: memory.id,
+        content: memory.content,
+        metadata: memory.metadata,
+        createdAt: memory.createdAt,
+        embedded: memory.embedded,
+    })
+    .from(memory)
+    .where(eq(memory.userId, userId))
+    .orderBy(desc(memory.createdAt))
+    .offset(offset)
+    .limit(per);
     return c.json ({ memories: items, page, per });
 });
 
@@ -103,7 +116,7 @@ router.get('/:id', async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
     
     const memoryId = c.req.param('id');
-    const rec = await prisma.memory.findUnique({ where: { id: memoryId, }, });
+    const [rec] = await db.select().from(memory).where(eq(memory.id, memoryId)).limit(1);
     if(!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
 
     return c.json(rec);
@@ -114,7 +127,7 @@ router.delete("/:id", async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
 
     const memoryId = c.req.param('id');
-    const rec = await prisma.memory.findUnique({ where: { id: memoryId } });
+    const [rec] = await db.select().from(memory).where(eq(memory.id, memoryId)).limit(1);
     if (!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
 
     const namespace = `user-${rec.userId}`;
@@ -127,8 +140,10 @@ router.delete("/:id", async(c) => {
     };
 
     try {
-        await prisma.memory.delete({ where: { id: memoryId }, });
-        await prisma.embeddingJob.deleteMany({ where: { memoryId: memoryId }, });
+    await db.transaction(async (tx) => {
+        await tx.delete(embeddingJob).where(eq(embeddingJob.memoryId, memoryId));
+        await tx.delete(memory).where(eq(memory.id, memoryId));
+    });
     } catch (err) {
         console.error("Failed to delete memory row after deleting vectors", err);
         return c.json({ error: "Failed to delete memory record" }, 500);

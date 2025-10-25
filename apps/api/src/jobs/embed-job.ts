@@ -1,4 +1,4 @@
-import { prisma } from "db";
+import { db, eq, schema } from "db";
 import { chunkText } from "../lib/chunk";
 import { embedBatch, upsertVectors } from "../lib/vector";
 
@@ -8,6 +8,8 @@ export type EmbedPayLoad = {
     userId: string;
     jobId: string;
 };
+
+const { memory, embeddingJob } = schema;
 
 export async function processEmbeddingJob(payload: EmbedPayLoad) {
     const text = payload.text;
@@ -24,18 +26,27 @@ export async function processEmbeddingJob(payload: EmbedPayLoad) {
     await upsertVectors(ids, vectors, namespace, memoryID);
 
     //to update metadata in postgres db - 
-    await prisma.memory.update({
-        where: {
-            id: payload.memoryId,
-        },
-        data: {
-            embedded: true,
-        },
-    });
+    await db
+    .update(memory)
+    .set({
+        embedded: true,
+    })
+    .where(eq(memory.id, memoryID));
+
 
     if(payload.jobId) {
-        await prisma.embeddingJob.update({ where: { id: payload.jobId }, data: { status: 'done' } });
+        await db
+        .update(embeddingJob)
+        .set({
+            status: "done",
+        })
+        .where(eq(embeddingJob.id, memoryID));
     } else {
-        await prisma.embeddingJob.updateMany({ where: { memoryId: payload.memoryId }, data: { status: 'done' } });
-    }
+        await db
+        .update(embeddingJob)
+        .set({
+            status: "done",
+        })
+        .where(eq(embeddingJob.memoryId, memoryID));
+    };
 };

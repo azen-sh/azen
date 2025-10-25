@@ -2,7 +2,7 @@ import { Worker } from 'bullmq';
 import { redisConnection } from '../queue/embedding-queue';
 import { processEmbeddingJob } from '../jobs/embed-job';
 import { QUEUE_NAME, WORKER_CONCURRENCY, BATCH_SIZE, BATCH_WAIT_MS, DLQ_ATTEMPTS } from '../config';
-import { prisma } from 'db';
+import { db, sql, schema } from 'db';
 
 type BufferedItem = {
   job: any;
@@ -13,6 +13,8 @@ type BufferedItem = {
 let localBuffer: BufferedItem[] = [];
 let bufferTimer: NodeJS.Timeout | null = null;
 
+const { embeddingJob } = schema;
+
 async function flushBuffer() {
   const items = localBuffer.splice(0, Number(BATCH_SIZE));
   if (items.length === 0) return;
@@ -22,10 +24,15 @@ async function flushBuffer() {
     try {
       if (job.data?.jobId) {
         try {
-          await prisma.embeddingJob.updateMany({
-            where: { id: job.data.jobId, status: { not: 'processing' } },
-            data: { status: 'processing', attempts: { increment: 1 }, updatedAt: new Date() },
-          });
+          await db
+            .update(embeddingJob)
+            .set({
+              status: "processing",
+              attempts: sql`${embeddingJob.attempts} + 1`,
+            })
+            .where(
+              sql`${embeddingJob.id} = ${job.data.jobId} AND ${embeddingJob.status} != 'processing'`
+            );
         } catch (e) {
           console.warn('warning: could not mark job processing', job.data?.jobId, e);
         }
@@ -35,10 +42,12 @@ async function flushBuffer() {
 
       if (job.data?.jobId) {
         try {
-          await prisma.embeddingJob.update({
-            where: { id: job.data.jobId },
-            data: { status: 'done', updatedAt: new Date() },
-          });
+          await db
+          .update(embeddingJob)
+          .set({
+            status: "done"
+          })
+          .where(sql`${embeddingJob.id} = ${job.data.jobId}`);
         } catch (e) {
           console.warn('warning: could not mark job done', job.data?.jobId, e);
         }
@@ -92,11 +101,14 @@ export function startWorker(opts = { concurrency: WORKER_CONCURRENCY }) {
       const attemptsMade = job?.attemptsMade ?? 0;
       const threshold = Number(DLQ_ATTEMPTS ?? DLQ_ATTEMPTS);
       if (job?.data?.jobId && attemptsMade >= threshold) {
-        await prisma.embeddingJob.update({
-          where: { id: job.data.jobId },
-          data: { status: 'failed', lastError: String(err ?? ''), updatedAt: new Date() },
-        });
-      }
+        await db
+        .update(embeddingJob)
+        .set({
+          status: "failed",
+          lastError: String(err ?? ""),
+        })
+        .where(sql`${embeddingJob.id} = ${job.data.jobId}`)
+      };
     } catch (e) {
       console.error('error marking DB job failed after exhausted attempts', e);
     }

@@ -1,11 +1,13 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { prisma } from "db";
+import { db, schema, inArray } from "db";
 import { embedBatch } from "../lib/vector";
 import { queryVectors } from "../lib/vector";
 
 const router = new Hono();
+
+const { memory } = schema;
 
 const SearchInputSchema = z.object({
     query: z.string().min(1),
@@ -34,18 +36,16 @@ router.post("/", async (c) => {
             .map(m => m.id?.split("::")[0])
             .filter((id): id is string => !!id)
         ));
-    console.log("memIds:", memIds);
-    const mems = memIds.length
-        ? await prisma.memory.findMany({
-            where: {
-                id: { in: memIds}, 
-                userId,
-            },
-        })
-        : [];
+    
+    let mems: Array<any> = [];    
+    if(memIds.length > 0) {
+        mems = await db
+        .select()
+        .from(memory)
+        .where(inArray(memory.id, memIds))
+    };
 
     const orderedMems = memIds.map(id => mems.find(m => m.id === id)).filter(Boolean);    
-    console.log("ordered memories:", orderedMems);
     return c.json({ memories: orderedMems, rawMatches: matches });
 });
 
