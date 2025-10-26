@@ -2,7 +2,7 @@ import { Worker } from 'bullmq';
 import { redisConnection } from '../queue/embedding-queue';
 import { processEmbeddingJob } from '../jobs/embed-job';
 import { QUEUE_NAME, WORKER_CONCURRENCY, BATCH_SIZE, BATCH_WAIT_MS, DLQ_ATTEMPTS } from '../config';
-import { db, sql, schema } from 'db';
+import { createDb, sql, schema } from 'db';
 
 type BufferedItem = {
   job: any;
@@ -16,6 +16,7 @@ let bufferTimer: NodeJS.Timeout | null = null;
 const { embeddingJob } = schema;
 
 async function flushBuffer() {
+  const db = createDb();
   const items = localBuffer.splice(0, Number(BATCH_SIZE));
   if (items.length === 0) return;
 
@@ -97,6 +98,7 @@ export function startWorker(opts = { concurrency: WORKER_CONCURRENCY }) {
   );
 
   worker.on('failed', async (job, err) => {
+    const db = createDb();
     try {
       const attemptsMade = job?.attemptsMade ?? 0;
       const threshold = Number(DLQ_ATTEMPTS ?? DLQ_ATTEMPTS);

@@ -1,4 +1,4 @@
-import { db, eq, schema } from "db";
+import { createDb, eq, schema } from "db";
 import { chunkText } from "../lib/chunk";
 import { embedBatch, upsertVectors } from "../lib/vector";
 
@@ -13,6 +13,7 @@ const { memory, embeddingJob } = schema;
 
 export async function processEmbeddingJob(payload: EmbedPayLoad) {
     const text = payload.text;
+    const db = createDb();
     if(!text) throw new Error("no text found to embed");
 
     const chunks = chunkText(text);
