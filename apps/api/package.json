@@ -1,7 +1,7 @@
 {
   "name": "api",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "private": true,
   "scripts": {
     "build": "tsc",
@@ -12,8 +12,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "typescript": "^5",
-    "wrangler": "^4.45.0"
+    "typescript": "^5"
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^6.1.2",
