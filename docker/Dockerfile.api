@@ -8,7 +8,7 @@ COPY packages/db ./packages/db
 COPY apps/api ./apps/api
 
 WORKDIR /build/apps/api
-RUN bun install --production=false
+RUN bun install 
 RUN bun run build 
 
 FROM oven/bun:1.2.19 AS runtime 
