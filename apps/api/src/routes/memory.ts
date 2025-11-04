@@ -1,7 +1,7 @@
 import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { createDb, schema, sql, eq, desc } from "db";
+import { db, schema, sql, eq, desc } from "db";
 import { randomUUID } from "crypto";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
@@ -17,7 +17,6 @@ const { memory, embeddingJob } = schema;
 
 router.post("/", async (c) => {
     const userId = c.get('userId');
-    const db = createDb()
     if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
 
     const body = await c.req.json();
@@ -89,7 +88,6 @@ router.post("/", async (c) => {
 
 router.get("/", async (c) => {
     const userId = c.get('userId');
-    const db = createDb();
     if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
 
     const page = Math.max(1, Number(c.req.query('page') ?? 1));
@@ -115,7 +113,6 @@ router.get("/", async (c) => {
 
 router.get('/:id', async(c) => {
     const userId = c.get('userId');
-    const db = createDb();
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
     
     const memoryId = c.req.param('id');
@@ -127,7 +124,6 @@ router.get('/:id', async(c) => {
 
 router.delete("/:id", async(c) => {
     const userId = c.get('userId');
-    const db = createDb();
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
 
     const memoryId = c.req.param('id');

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { createDb, schema, inArray } from "db";
+import { db, schema, inArray } from "db";
 import { embedBatch } from "../lib/vector";
 import { queryVectors } from "../lib/vector";
 
@@ -16,7 +16,6 @@ const SearchInputSchema = z.object({
 
 router.post("/", async (c) => {
     const userId = c.get("userId");
-    const db = createDb();
     if(!userId) throw new HTTPException(401, { message: "Not authenticated"});
     
     const parsed = SearchInputSchema.safeParse(await c.req.json());
