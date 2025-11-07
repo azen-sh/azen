@@ -1,9 +1,9 @@
-version: '3.8'
-
 services:
 
   api:
-    container_name: azen-api
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
     image: azen-api:local-test
     restart: always
     env_file: 
@@ -13,13 +13,15 @@ services:
     depends_on: 
       - redis  
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/ || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
 
-  worker:
-    container_name: azen-worker  
+  worker: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
     image: azen-api:local-test
     restart: always
     env_file:
@@ -32,10 +34,11 @@ services:
     container_name: redis-local
     image: redis:7
     restart: always
+    pull_policy: never
     ports: 
       - "6379:6379"
     volumes:
-      -redis-data:/data  
+      - redis-data:/data  
 
 volumes:
   redis-data:
