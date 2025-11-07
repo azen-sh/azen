@@ -6,6 +6,7 @@ import memoryRoute from "./routes/memory";
 import searchRoute from "./routes/search";
 
 const app = new Hono();
+const PORT  = Number(process.env.PORT || 8080);
 
 app.use('*', logger());
 app.use('*', cors());
@@ -22,5 +23,6 @@ app.route("/api/v1/memory", memoryRoute);
 app.route("/api/v1/memory/search", searchRoute);
 
 export default {
+    port: PORT,
     fetch: app.fetch,
 };

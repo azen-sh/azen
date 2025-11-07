@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  api:
+    container_name: azen-api
+    image: azen-api:local-test
+    restart: always
+    env_file: 
+      - apps/api/.env
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  worker:
+    container_name: azen-worker  
+    image: azen-api:local-test
+    restart: always
+    env_file:
+      - apps/api/.env
+    command: ["bun", "run", "start:worker"]  
