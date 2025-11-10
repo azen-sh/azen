@@ -35,8 +35,4 @@ jobs:
                 tags: |
                     ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}:latest
                     ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}:${{ github.sha }}
-                
-
-           
-
       
