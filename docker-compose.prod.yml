@@ -1,0 +1,20 @@
+services:
+    api:
+      image: docker.io/govindvashishat0207/azen-api:latest
+      restart: unless-stopped
+      env_file:
+        - apps/api/.env
+      ports:
+        - "8080:8080"
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/ || exit 1"]
+        interval: 30s
+        timeout: 5s
+        retries: 3
+
+    worker: 
+      image: docker.io/govindvashishat0207/azen-api:latest
+      restart: unless-stopped
+      env_file:
+        - apps/api/.env
+      command: ["bun", "run", "start:worker"]  

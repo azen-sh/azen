@@ -35,4 +35,53 @@ jobs:
                 tags: |
                     ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}:latest
                     ${{ env.REGISTRY }}/${{ env.IMAGE_REPO }}:${{ github.sha }}
-      
+
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Copy compose to droplet
+              uses: appleboy/scp-action@v0.1.5
+              with:
+                host: ${{ secrets.DROPLET_HOST }}
+                username: ${{ secrets.DROPLET_USER }}
+                key: ${{ secrets.DROPLET_SSH_KEY }}
+                source: "docker-compose.prod.yml"
+                target: "/home/${{ secrets.DROPLET_USER }}/azen/docker-compose.yml"
+
+            - name: Write envs and deploy
+              uses: appleboy/ssh-action@v0.1.7
+              with:
+                host: ${{ secrets.DROPLET_HOST }}    
+                username: ${{ secrets.DROPLET_USER }}
+                key: ${{ secrets.DROPLET_SSH_KEY }}
+                script: |
+                    set -e
+                    mkdir -p /home/${{ secrets.DROPLET_USER }}/azen/apps/api
+
+                    cat >/home/${{ secrets.DROPLET_USER }}/azen/apps/api/.env <<'EOF'
+                    PORT=${{ secrets.PORT }}
+                    NODE_ENV=${{ secrets.NODE_ENV }}
+                    BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+                    DATABASE_URL=${{ secrets.DATABASE_URL }}
+                    OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                    PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }}
+                    PINECONE_ENV=${{ secrets.PINECONE_ENV }}
+                    PINECONE_INDEX_PROD=${{ secrets.PINECONE_INDEX_PROD }}
+                    REDIS_URL_PROD=${{ secrets.REDIS_URL_PROD }}
+                    QUEUE_NAME=${{ secrets.QUEUE_NAME }}
+                    WORKER_CONCURRENCY=${{ secrets.WORKER_CONCURRENCY }}     
+                    BATCH_SIZE=${{ secrets.BATCH_SIZE }}           
+                    BATCH_WAIT_MS=${{ secrets.BATCH_WAIT_MS }}      
+                    RATE_MIN_TIME=${{ secrets.RATE_MIN_TIME }}        
+                    RATE_MAX_CONCURRENT=${{ secrets.RATE_MAX_CONCURRENT }}
+                    DLQ_ATTEMPTS=${{ secrets.DLQ_ATTEMPTS }}         
+                    METRICS_PORT=${{ secrets.METRICS_PORT }}
+                    EOF
+
+                    chown -R ${{ secrets.DROPLET_USER }}:${{ secrets.DROPLET_USER }} /home/${{ secrets.DROPLET_USER }}/azen || true
+
+                    cd /home/${{ secrets.DROPLET_USER }}/azen
+                    docker compose pull
+                    docker compose up -d --remove-orphans
+                    docker compose ps -a

@@ -33,7 +33,6 @@ services:
     container_name: redis-local
     image: redis:7
     restart: always
-    pull_policy: never
     ports: 
       - "6379:6379"
     volumes:
