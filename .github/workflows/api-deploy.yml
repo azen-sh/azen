@@ -84,6 +84,8 @@ jobs:
 
                     chown -R ${{ secrets.DROPLET_USER }}:${{ secrets.DROPLET_USER }} /home/${{ secrets.DROPLET_USER }}/azen || true
 
+                    echo "${{ secrets.DOCKER_TOKEN }}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
                     cd /home/${{ secrets.DROPLET_USER }}/azen
                     docker compose -f docker-compose.prod.yml pull
                     docker compose -f docker-compose.prod.yml up -d --remove-orphans
