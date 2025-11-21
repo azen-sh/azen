@@ -8,7 +8,7 @@ export default function Home() {
     <div className="bg-black flex justify-center items-center min-h-screen gap-4">
       <Button 
       onClick={() => 
-      signIn.social({ provider: 'google', callbackURL: '/dashboard' })}
+      signIn.social({ provider: 'google', callbackURL: '/dashboard-1' })}
       className="bg-white text-black px-4 py-2 cursor-pointer hover:bg-white">Sign In</Button>
 
       <Button 

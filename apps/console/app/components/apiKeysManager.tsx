@@ -12,6 +12,7 @@ export default function ApiKeysManager() {
     async function loadKeys() {
         try {
             const res = await authClient.apiKey.list();
+            console.log(res);
             setKeys(res.data ?? []);
         } catch (e) {
             console.error(e);
@@ -23,8 +24,8 @@ export default function ApiKeysManager() {
         try {
             const res = await authClient.apiKey.create({
                 name: `console-${Date.now()}`,
-                expiresIn: 60 * 60 * 24 * 90,
-                prefix: 'proj_sk_',
+                expiresIn: 60 * 60 * 24 * 365,
+                prefix: 'az_',
                 metadata: { createdFrom: 'console' },
             });
             console.log(res.data);
