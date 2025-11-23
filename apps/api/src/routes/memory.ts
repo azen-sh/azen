@@ -21,9 +21,16 @@ router.post("/", async (c) => {
 
     const body = await c.req.json();
     const parsed = MemoryInputSchema.safeParse(body);
+
     if(!parsed.success) {
-        return c.json({ error: 'Invalid Request', details: parsed.error.format() }, 400);
+        return c.json({
+            status: "error",
+            message: "Invalid request body",
+            code: 400,
+            details: parsed.error.format(),
+        }, 400);
     };
+
     const { text, dedupKey } = parsed.data;
 
     if(dedupKey) {
@@ -34,7 +41,7 @@ router.post("/", async (c) => {
         .limit(1);
 
         if(existing) {
-            return c.json({ ok: true, memoryId: existing.id, duplicated: true, });
+            return c.json({ status: "success", memoryId: existing.id, duplicated: true, });
         };
     };
 
@@ -75,7 +82,7 @@ router.post("/", async (c) => {
         attempts: Number(process.env.DLQ_ATTEMPTS ?? 5),
         backoff: { type: 'exponential', delay: 2000 },
         removeOnComplete: 1000,
-        removeOnFail: 10000,
+        removeOnFail: 1000,
     });
 
     return c.json({
@@ -90,8 +97,11 @@ router.get("/", async (c) => {
     const userId = c.get('userId');
     if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
 
-    const page = Math.max(1, Number(c.req.query('page') ?? 1));
-    const per = Math.min(Math.max(1, Number(c.req.query('per') ?? 20)), 100);
+    const pageNum = Number(c.req.query('page') ?? 1);
+    const page = isNaN(pageNum) ? 1 : Math.max(1, pageNum);
+
+    const perNum = Number(c.req.query('per') ?? 20);
+    const per = isNaN(perNum) ? 20 : Math.min(Math.max(1, perNum), 100);
 
     const offset = (page - 1) * per;
 

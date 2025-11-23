@@ -19,8 +19,14 @@ router.post("/", async (c) => {
     if(!userId) throw new HTTPException(401, { message: "Not authenticated"});
     
     const parsed = SearchInputSchema.safeParse(await c.req.json());
+    
     if(!parsed.success) {
-        return c.json({ error: "Invalid Request", details: parsed.error.format()}, 400);
+        return c.json({
+            status: "error",
+            message: "Invalid request body",
+            code: 400,
+            details: parsed.error.format(),
+        }, 400);
     };
 
     const { query, topK = 5 } = parsed.data;
