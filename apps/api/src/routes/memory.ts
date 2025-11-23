@@ -1,7 +1,7 @@
 import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { db, schema, sql, eq, desc } from "db";
+import { db, schema, and, sql, eq, desc } from "db";
 import { randomUUID } from "crypto";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
@@ -116,10 +116,28 @@ router.get('/:id', async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
     
     const memoryId = c.req.param('id');
-    const [rec] = await db.select().from(memory).where(eq(memory.id, memoryId)).limit(1);
-    if(!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
+    const [rec] = await db
+    .select()
+    .from(memory)
+    .where(
+        and(
+            eq(memory.id, memoryId),
+            eq(memory.userId, userId)
+        )
+    )
+    .limit(1);
 
-    return c.json(rec);
+    if(!rec) {
+        return c.json({
+            status: 'success',
+            memory: null,
+        }, 200);
+    }; 
+
+    return c.json({
+        status: "success",
+        memory: rec,
+    }, 200);
 });
 
 router.delete("/:id", async(c) => {
@@ -127,8 +145,24 @@ router.delete("/:id", async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
 
     const memoryId = c.req.param('id');
-    const [rec] = await db.select().from(memory).where(eq(memory.id, memoryId)).limit(1);
-    if (!rec || rec.userId !== userId) return c.json({ error: 'Not found' }, 404);
+    const [rec] = await db
+    .select()
+    .from(memory)
+    .where(
+        and(
+            eq(memory.id, memoryId),
+            eq(memory.userId, userId),
+        )
+    )
+    .limit(1);
+    if (!rec) {
+        return c.json({
+            status: "success",
+            deleted: false,
+            memoryId: memoryId,
+            reason: 'memory_not_found',
+        }, 200);
+    };
 
     const namespace = `user-${rec.userId}`;
 
@@ -136,20 +170,22 @@ router.delete("/:id", async(c) => {
         await deleteMemoryVectors(rec.id, namespace);
     } catch (err) {
         console.error('Failed to delete vectors for memory', err);
-        return c.json({ error: "failed to delete vectors" }, 500);
+        throw new HTTPException(500, { message: "Failed to delete vectors for memory" });
     };
 
     try {
-    await db.transaction(async (tx) => {
-        await tx.delete(embeddingJob).where(eq(embeddingJob.memoryId, memoryId));
-        await tx.delete(memory).where(eq(memory.id, memoryId));
-    });
+        await db.delete(embeddingJob).where(eq(embeddingJob.memoryId, memoryId));
+        await db.delete(memory).where(eq(memory.id, memoryId));
     } catch (err) {
         console.error("Failed to delete memory row after deleting vectors", err);
-        return c.json({ error: "Failed to delete memory record" }, 500);
+        throw new HTTPException(500, { message: 'Failed to delete memory record' });
     };
 
-    return c.json({ ok: true });
+    return c.json({ 
+        status: "success",
+        deleted: true,
+        memoryId,
+     }, 200);
 });
 
 export default router;
