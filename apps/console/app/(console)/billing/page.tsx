@@ -24,7 +24,7 @@ export default function BillingPage() {
             Billing dashboard in progress
           </h2>
           <p className="mt-2 text-xs text-neutral-400">
-            We&apos;re finalizing the self-serve billing experience for Azen
+            We&apos;re finalizing the self-serve billing experience for Azen.
             Good news! During this early access phase, all services are currently complimentary.
           </p>
 

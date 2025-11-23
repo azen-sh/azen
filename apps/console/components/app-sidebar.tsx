@@ -3,6 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "@/app/lib/auth-client";
+import Image from "next/image";
+
 import {
   LayoutDashboard,
   KeyRound,
@@ -36,9 +39,26 @@ const navItems = [
   { title: "Plans & Billing", href: "/billing", icon: CreditCard },
 ];
 
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+};
+
+export function AppSidebar(
+  props: React.ComponentProps<typeof Sidebar> & { user: User }
+) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { user } = props;
+
+  function handleSignOut() {
+    signOut().then(() => {
+      router.push("/login");
+    });
+  };
 
   const [settingsOpen, setSettingsOpen] = React.useState(
     pathname.startsWith("/settings")
@@ -50,35 +70,49 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" className="bg-black text-white" {...props}>
-      {/* TOP: logo + trigger (like your screenshot) */}
-      <SidebarHeader className="px-3 pt-4 pb-3">
+      <SidebarHeader className="px-4 pt-4 pb-3 mt-1">
         <div
           className={cn(
             "flex items-center justify-between",
-            // when collapsed (icon mode), stack them vertically & center
             "group-data-[collapsible=icon]:flex-col",
             "group-data-[collapsible=icon]:items-center",
             "group-data-[collapsible=icon]:gap-2"
           )}
         >
-          {/* Logo only, no text */}
-          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-black">
-            O
-          </button>
-
-          {/* Sidebar trigger icon */}
-          <SidebarTrigger className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-900 hover:text-white" />
+          <div className="flex items-center gap-2">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full">
+             <Image
+              src="/logo.png"
+              alt="Your Logo"
+              width={28}
+              height={28}
+             />
+            </button>
+            <span
+              className={cn(
+                "text-sm font tracking-wide text-white",
+                "group-data-[collapsible=icon]:hidden"
+              )}
+            >
+              Azen 
+              <span className="ml-1 font-normal text-sm text-neutral-400">
+                Console
+              </span>
+            </span>
+          </div>
+          <SidebarTrigger className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-900 hover:text-white cursor-pointer" />
         </div>
       </SidebarHeader>
 
       {/* MAIN NAV */}
-      <SidebarContent className="flex h-full flex-col px-2 pb-3 mt-4">
+      <SidebarContent className="flex h-full flex-col px-2 pb-3 mt-7">
         {/* MAIN NAV */}
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active =
-              pathname === item.href || (item.href === "/dashboard" && pathname === "/");
+              pathname === item.href ||
+              (item.href === "/dashboard" && pathname === "/");
 
             return (
               <Link
@@ -106,7 +140,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             className={cn(
               "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white transition",
               "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
-              pathname.startsWith("/settings") && "bg-neutral-900 text-white"
+              pathname.startsWith("/settings") && "bg-neutral-900 text-white cursor-pointer"
             )}
           >
             <SlidersHorizontal className="h-4 w-4 shrink-0" />
@@ -144,17 +178,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         {/* SUPPORT + DOCS (unchanged, just make sure labels hide in icon mode) */}
         <div className="space-y-1 px-1 pb-2">
           <Link
-            href="/support"
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white transition group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+            href="mailto:govindvashishat@gmail.com"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:text-white transition group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 cursor-pointer"
           >
             <HelpCircle className="h-4 w-4" />
             <span className="group-data-[collapsible=icon]:hidden">Support</span>
           </Link>
-
           <Link
             href="https://your-docs-url.com"
             target="_blank"
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:bg-neutral-900 hover:text-white transition group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:text-white transition group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 cursor-pointer"
           >
             <BookOpen className="h-4 w-4" />
             <span className="group-data-[collapsible=icon]:hidden">Documentation</span>
@@ -168,57 +201,57 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                "flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-left text-xs text-neutral-200 hover:bg-neutral-900",
+                "flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-left text-xs text-neutral-200 cursor-pointer",
                 // when sidebar is collapsed to icon, make this a small round button
                 "group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-full"
               )}
             >
               <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-neutral-700 text-[11px] font-medium">
-                G
+                <Image
+                  src={user.image ?? ""}
+                  alt="User Avatar"
+                  width={28}
+                  height={28}
+                  className="object-cover"
+                  priority
+                />
               </div>
 
-              {/* hide text when sidebar is collapsed */}
               <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-medium">Govind&apos;s Organization</span>
+                <span className="truncate font-medium">{user.name}&apos;s Workspace</span>
                 <span className="truncate text-[10px] text-neutral-400">
-                  govindvashishat@gmail.com
+                  {user.email}
                 </span>
               </div>
             </button>
           </DropdownMenuTrigger>
-
           <DropdownMenuContent
             side="top"
             align="start"
             sideOffset={8}
             className="w-64 border-neutral-800 bg-neutral-950 text-white"
           >
-            <DropdownMenuLabel className="text-xs font-medium">Govind Vashishat</DropdownMenuLabel>
-            <p className="px-2 text-[11px] text-neutral-400">govindvashishat@gmail.com</p>
-
+            <DropdownMenuLabel className="text-xs font-medium">{user.name}</DropdownMenuLabel>
+            <p className="px-2 text-[11px] text-neutral-400">{user.email}</p>
             <DropdownMenuSeparator className="bg-neutral-800" />
-
             <DropdownMenuItem
-              className="text-xs text-neutral-200 focus:bg-neutral-900 focus:text-white"
-              onClick={() => {}}
+              className="text-xs text-neutral-200 focus:bg-neutral-900 focus:text-white cursor-pointer"
+              onClick={() => {
+                router.push("/settings/account");
+              }}
             >
               Account settings
             </DropdownMenuItem>
-
             <DropdownMenuSeparator className="bg-neutral-800" />
-
             <DropdownMenuItem
-              className="text-xs text-red-400 focus:bg-red-950 focus:text-red-400"
-              onClick={() => {
-                console.log("Sign out");
-              }}
+              className="text-xs text-red-400 focus:bg-red-950 focus:text-red-400 cursor-pointer"
+              onClick={handleSignOut}
             >
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   );

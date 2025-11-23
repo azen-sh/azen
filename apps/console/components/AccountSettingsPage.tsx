@@ -2,18 +2,17 @@
 
 import { LogOut, User2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { signOut } from "@/app/lib/auth-client";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-const user = {
-  name: "govind-vashishat",
-  email: "govindvashishat@gmail.com",
-  avatarInitials: "G",
-}
-
-export default function AccountSettingsPage() {
-  const handleSignOut = () => {
-    // TODO: replace with your real sign-out logic
-    console.log("Sign out")
-  }
+export default function AccountSettingsPage({ user }: { user: { name: string; email: string; image: string | null } }) {
+  const router = useRouter();
+  function handleSignOut() {
+    signOut().then(() => {
+      router.push("/login");
+    });
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -33,13 +32,20 @@ export default function AccountSettingsPage() {
           <span>Account Profile</span>
         </div>
 
-        {/* Account profile card */}
-        <section className="rounded-3xl border border-neutral-800 bg-neutral-950/95 px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
+
+        <section className="rounded-3xl border border-neutral-800 bg-[#0d0d0e] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             {/* Avatar */}
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-800 text-base font-semibold text-neutral-50">
-                {user.avatarInitials}
+                <Image 
+                src={user.image ?? ""}
+                alt="User avatar"
+                width={56}
+                height={56}
+                className="object-cover"
+                priority
+                />
               </div>
             </div>
 
@@ -48,7 +54,7 @@ export default function AccountSettingsPage() {
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
-                    Display Name
+                    Name
                   </div>
                   <div className="mt-1 text-neutral-100">{user.name}</div>
                 </div>
@@ -74,7 +80,7 @@ export default function AccountSettingsPage() {
         <div className="text-sm font-medium text-neutral-200">Sign Out</div>
 
         {/* Sign out card */}
-        <section className="rounded-3xl border border-neutral-800 bg-neutral-950/95 px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
+        <section className="rounded-3xl border border-neutral-800 bg-[#0d0d0e] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-sm font-medium text-white">Sign Out</div>

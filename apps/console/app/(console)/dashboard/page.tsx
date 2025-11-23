@@ -10,10 +10,8 @@ export default function Page() {
         </p>
       </div>
 
-      {/* Top cards (same structure as shadcn, just with your content) */}
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        {/* Card 1: Quick start */}
-        <section className="rounded-xl border-neutral-800 border bg-neutral-950/95 p-4">
+        <section className="rounded-xl bg-[#0d0d0e] p-4">
           <h2 className="text-sm font-roboto">Getting started</h2>
           <p className="mt-1 text-xs text-neutral-400">
             Create an API key and send your first request to Azen.
@@ -27,7 +25,7 @@ export default function Page() {
         </section>
 
         {/* Card 2: Usage summary */}
-        <section className="rounded-xl border-neutral-800 border bg-neutral-950/95 p-4">
+        <section className="rounded-xl border-neutral-800 border bg-[#0d0d0e] p-4">
           <h2 className="text-sm font-roboto">Usage</h2>
           <p className="mt-1 text-xs text-neutral-400">
             High-level usage for this workspace.
@@ -51,7 +49,7 @@ export default function Page() {
         </section>
 
         {/* Card 3: SDK + docs */}
-        <section className="rounded-xl border-neutral-800 border bg-neutral-950/95 p-4">
+        <section className="rounded-xl border-neutral-800 border bg-[#0d0d0e] p-4">
           <h2 className="text-sm font-roboto">SDK & docs</h2>
           <p className="mt-1 text-xs text-neutral-400">
             Install the TypeScript SDK and follow the quickstart.
@@ -70,7 +68,7 @@ export default function Page() {
         </section>
       </div>
 
-      <section className="min-h-[260px] flex-1 rounded-xl border-neutral-800 border bg-neutral-950/95 p-4 md:min-h-[360px]">
+      <section className="min-h-[260px] flex-1 rounded-xl border-neutral-800 border bg-[#0d0d0e] p-4 md:min-h-[360px]">
         <h2 className="text-sm font-roboto">Workspace</h2>
         <p className="mt-1 text-xs text-neutral-400">
           This area can show API keys, memory stats, or project details as you build out the console.
