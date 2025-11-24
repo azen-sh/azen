@@ -17,8 +17,15 @@ const SearchInputSchema = z.object({
 router.post("/", async (c) => {
     const userId = c.get("userId");
     if(!userId) throw new HTTPException(401, { message: "Not authenticated"});
-    
-    const parsed = SearchInputSchema.safeParse(await c.req.json());
+
+    let body;
+    try {
+        body = await c.req.json();
+    } catch (e) {
+        throw new HTTPException(400, { message: "Request body must be valid JSON" });
+    };
+
+    const parsed = SearchInputSchema.safeParse(body);
     
     if(!parsed.success) {
         return c.json({

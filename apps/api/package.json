@@ -20,6 +20,7 @@
     "bottleneck": "^2.19.5",
     "bullmq": "^5.61.0",
     "db": "*",
+    "@azen/auth-config": "*",
     "hono": "^4.9.1",
     "ioredis": "^5.8.1",
     "js-tiktoken": "^1.0.21",

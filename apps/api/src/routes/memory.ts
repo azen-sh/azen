@@ -13,13 +13,21 @@ const MemoryInputSchema = z.object({
     dedupKey: z.string().optional(),
 });
 
+const MemoryIdSchema = z.uuid();
+
 const { memory, embeddingJob } = schema;
 
 router.post("/", async (c) => {
     const userId = c.get('userId');
     if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
 
-    const body = await c.req.json();
+    let body;
+    try {
+        body = await c.req.json();
+    } catch (e) {
+        throw new HTTPException(400, { message: "Request body must be valid JSON" });
+    };
+
     const parsed = MemoryInputSchema.safeParse(body);
 
     if(!parsed.success) {
@@ -126,6 +134,16 @@ router.get('/:id', async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
     
     const memoryId = c.req.param('id');
+    const parsedId = MemoryIdSchema.safeParse(memoryId);
+
+    if(!parsedId.success) {
+        return c.json({
+            status: "error",
+            message: "Invalid memory Id",
+            code: 400,
+        }, 400);
+    };
+
     const [rec] = await db
     .select()
     .from(memory)
@@ -155,6 +173,16 @@ router.delete("/:id", async(c) => {
     if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
 
     const memoryId = c.req.param('id');
+    const parsedId = MemoryIdSchema.safeParse(memoryId);
+    
+    if(!parsedId.success) {
+        return c.json({
+            status: "error",
+            message: "Invalid memory Id",
+            code: 400
+        }, 400);
+    };
+
     const [rec] = await db
     .select()
     .from(memory)
