@@ -7,8 +7,16 @@ export const verifyApiKey = createMiddleware(async (c, next) => {
     if(!key) throw new HTTPException(401, { message: "no api key"});
 
     const response = await auth.api.verifyApiKey({ body: { key }});
-
+    
     if(!response || !response.valid) {
+        const code = response?.error?.code;
+
+        if(code === "RATE_LIMITED") {
+            throw new HTTPException(429, {
+                message: response.error?.message ?? "Rate limit exceeded for this API key"
+            });
+        };
+        
         throw new HTTPException(403, { message: response.error?.message ?? "Invalid API key"});
     };
 

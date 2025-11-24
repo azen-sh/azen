@@ -23,6 +23,11 @@ export const auth = betterAuth({
         apiKey({
             apiKeyHeaders: ['azen-api-key'],
             enableMetadata: true,
+            rateLimit: {
+                enabled: true,
+                timeWindow: 60 * 1000,
+                maxRequests: 60,
+            },
             permissions: {
                 defaultPermissions: {
                     file: ['read'],
