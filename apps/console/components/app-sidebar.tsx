@@ -94,10 +94,7 @@ export function AppSidebar(
                 "group-data-[collapsible=icon]:hidden"
               )}
             >
-              Azen 
-              <span className="ml-1 font-normal text-sm text-neutral-400">
-                Console
-              </span>
+              Azen Console
             </span>
           </div>
           <SidebarTrigger className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-900 hover:text-white cursor-pointer" />
