@@ -31,9 +31,18 @@ app.use('*', cors());
 app.use("/api/v1/memory/*", verifyApiKey);
 app.use("/api/v1/memory/search/*", verifyApiKey);
 
-app.get("/", (c) => {
+app.get("/", () => {
+    return new Response("Welcome to Azen API", {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  });
+  
+app.get("/api/v1", (c) => {
     return c.json({
-        status: "ok",
+        "status": "ok",
     });
 });
 
