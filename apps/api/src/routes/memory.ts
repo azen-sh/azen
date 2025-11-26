@@ -10,7 +10,7 @@ const router = new Hono();
 
 const MemoryInputSchema = z.object({
     text: z.string().min(1),
-    dedupKey: z.string().optional(),
+    dedupKey: z.string().optional().nullish(),
 });
 
 const MemoryIdSchema = z.uuid();
@@ -40,12 +40,12 @@ router.post("/", async (c) => {
     };
 
     const { text, dedupKey } = parsed.data;
-
-    if(dedupKey) {
+    const normalizedDedupKey = dedupKey ?? undefined;
+    if(normalizedDedupKey) {
         const [existing] = await db
         .select()
         .from(memory)
-        .where(sql`(metadata->>'dedupKey') = ${dedupKey}`)
+        .where(sql`(metadata->>'dedupKey') = ${normalizedDedupKey}`)
         .limit(1);
 
         if(existing) {
@@ -60,7 +60,7 @@ router.post("/", async (c) => {
         id: memId,
         userId,
         content: text,
-        metadata: dedupKey ? { dedupKey } : null,
+        metadata: normalizedDedupKey ? { normalizedDedupKey } : null,
     }).returning();
 
     if(!rec) {
