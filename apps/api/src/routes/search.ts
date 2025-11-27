@@ -53,13 +53,23 @@ router.post("/", async (c) => {
     let mems: Array<any> = [];    
     if(memIds.length > 0) {
         mems = await db
-        .select()
+        .select({
+            id: memory.id,
+            content: memory.content,
+            metadata: memory.metadata,
+            createdAt: memory.createdAt,
+            embedded: memory.embedded,
+        })
         .from(memory)
         .where(inArray(memory.id, memIds))
     };
 
     const orderedMems = memIds.map(id => mems.find(m => m.id === id)).filter(Boolean);    
-    return c.json({ memories: orderedMems, rawMatches: matches });
+    return c.json({ 
+        status: "success",
+        memories: orderedMems, 
+        rawMatches: matches 
+    });
 });
 
 export default router;
