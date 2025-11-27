@@ -102,7 +102,7 @@ router.post("/", async (c) => {
         status: "success",
         memoryId: rec.id,
         createdAt: rec.createdAt,
-        embeddingS: 'processing',
+        embedding: 'processing',
     }, 201);
 });
 
@@ -236,6 +236,7 @@ router.delete("/:id", async(c) => {
         status: "success",
         deleted: true,
         memoryId,
+        message: "Memory deleted successfully"
      }, 200);
 });
 
