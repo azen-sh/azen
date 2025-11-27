@@ -49,8 +49,13 @@ router.post("/", async (c) => {
         .limit(1);
 
         if(existing) {
-            return c.json({ status: "success", memoryId: existing.id, duplicated: true, });
-        };
+            return c.json({ 
+                status: "success", 
+                memoryId: existing.id, 
+                duplicated: true,
+                message: "Memory already exists with this dedupKey"
+            });
+        }
     };
 
     const memId = randomUUID();
@@ -94,10 +99,10 @@ router.post("/", async (c) => {
     });
 
     return c.json({
-        ok: true,
+        status: "success",
         memoryId: rec.id,
         createdAt: rec.createdAt,
-        status: 'processing',
+        embeddingS: 'processing',
     }, 201);
 });
 
@@ -126,7 +131,13 @@ router.get("/", async (c) => {
     .orderBy(desc(memory.createdAt))
     .offset(offset)
     .limit(per);
-    return c.json ({ memories: items, page, per });
+    
+    return c.json({ 
+        status: "success",
+        memories: items, 
+        page, 
+        per 
+    });
 });
 
 router.get('/:id', async(c) => {
@@ -159,6 +170,7 @@ router.get('/:id', async(c) => {
         return c.json({
             status: 'success',
             memory: null,
+            message: 'Memory does not exist or was already deleted'
         }, 200);
     }; 
 
@@ -199,6 +211,7 @@ router.delete("/:id", async(c) => {
             deleted: false,
             memoryId: memoryId,
             reason: 'memory_not_found',
+            message: 'Memory does not exist or was already deleted'
         }, 200);
     };
 

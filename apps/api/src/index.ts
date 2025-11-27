@@ -40,7 +40,7 @@ app.get("/", () => {
     });
   });
   
-app.get("/api/v1/", (c) => {
+app.get("/api/v1", (c) => {
     return c.json({
         "status": "ok",
     });
