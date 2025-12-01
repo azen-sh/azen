@@ -1,5 +1,9 @@
-const NODE_ENV = process.env.NODE_ENV ?? 'development';
+const NODE_ENV = process.env.NODE_ENV;
 const isProd = NODE_ENV === 'production';
+
+export const allowedOrigins = isProd
+    ? process.env.NEXT_CONSOLE_URL_PROD
+    : process.env.NEXT_CONSOLE_URL_DEV
 
 export const PINECONE_INDEX = isProd 
     ? process.env.PINECONE_INDEX_PROD 

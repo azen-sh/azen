@@ -8,6 +8,7 @@ import searchRoute from "./routes/search";
 import usageRoute from "./routes/usage";
 import { trackUsage } from "./middlewares/trackUsage";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import { allowedOrigins } from "./config";
 
 const app = new Hono();
 const PORT  = Number(process.env.PORT || 8080);
@@ -31,7 +32,7 @@ app.onError((err, c) => {
 
 app.use('*', logger());
 app.use('*', cors({
-    origin: "http://localhost:3002",
+    origin: allowedOrigins as string,
     allowMethods: ["GET", "POST", "DELETE"],
     allowHeaders: ['Content-Type'],
     credentials: true,
