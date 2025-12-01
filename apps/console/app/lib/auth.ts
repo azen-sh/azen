@@ -13,22 +13,5 @@ export const auth = betterAuth({
     plugins: [
         nextCookies(),
         ...authConfig.plugins,
-    ],
-    advanced: {
-        cookies: {
-            session_token: {
-                name: "better-auth.session_token",
-                attributes: {
-                    path: "/",
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
-                    maxAge: 60 * 60 * 24 * 7,
-                    domain: process.env.NODE_ENV === "production" 
-                    ? ".azen.sh" 
-                    : undefined
-                },
-            }
-        }
-    } 
+    ], 
 });
