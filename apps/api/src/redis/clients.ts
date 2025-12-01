@@ -1,13 +1,12 @@
 import IORedis from "ioredis";
+import { REDIS_URL } from "../config";
 
-const REDIS_URL = process.env.REDIS_URL_DEV || "redis://redis:6379";
-
-export const bullRedis = new IORedis(REDIS_URL, {
+export const bullRedis = new IORedis(REDIS_URL as string, {
   maxRetriesPerRequest: null,
   enableReadyCheck: true,
 });
 
-export const metricsRedis = new IORedis(REDIS_URL, {
+export const metricsRedis = new IORedis(REDIS_URL as string, {
   maxRetriesPerRequest: 2,
   enableReadyCheck: true,
 });
