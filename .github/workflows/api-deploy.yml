@@ -72,6 +72,7 @@ jobs:
                     PINECONE_ENV=${{ secrets.PINECONE_ENV }}
                     PINECONE_INDEX_PROD=${{ secrets.PINECONE_INDEX_PROD }}
                     REDIS_URL_PROD=${{ secrets.REDIS_URL_PROD }}
+                    NEXT_CONSOLE_URL_PROD=${{ secrets.NEXT_CONSOLE_URL_PROD }}
                     QUEUE_NAME=${{ secrets.QUEUE_NAME }}
                     WORKER_CONCURRENCY=${{ secrets.WORKER_CONCURRENCY }}     
                     BATCH_SIZE=${{ secrets.BATCH_SIZE }}           
