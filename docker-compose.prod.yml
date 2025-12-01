@@ -17,4 +17,11 @@ services:
       restart: unless-stopped
       env_file:
         - apps/api/.env
-      command: ["bun", "run", "start:worker"]  
+      command: ["bun", "run", "start:worker"]
+
+    metrics-worker:
+      image: docker.io/govindvashishat0207/azen-api:latest
+      restart: unless-stopped
+      env_file: 
+        - apps/api/.env
+      command: ["bun", "run", "start:metrics"]

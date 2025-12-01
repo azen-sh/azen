@@ -6,9 +6,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "bun src/index.ts",
-    "start": "bun ./dist/src/index.js",
-    "dev:worker": "bun worker.ts",
-    "start:worker": "bun ./dist/worker.js"
+    "start": "bun ./dist/index.js",
+    "dev:worker": "bun src/worker.ts",
+    "start:worker": "bun ./dist/worker.js",
+    "start:metrics": "bun ./dist/workers/syncWorker.js"
   },
   "devDependencies": {
     "@types/bun": "latest",

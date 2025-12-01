@@ -5,6 +5,8 @@ import {
     boolean,
     integer,
     json,
+    date,
+    uniqueIndex,
 } from "drizzle-orm/pg-core";
   
 export const user = pgTable("user", {
@@ -92,6 +94,35 @@ export const apikey = pgTable("apikey", {
     permissions: text("permissions"),
     metadata: json("metadata"),
 });
+
+export const apikeyUsage = pgTable(
+    "api_usage",
+    {
+      id: text("id").primaryKey().notNull(),
+      userId: text("user_id")
+        .notNull(),
+      apiKeyId: text("api_key_id").notNull(),
+      date: text("date").notNull(),
+      routeGroup: text("route_group").notNull(),
+      totalRequests: integer("total_requests").notNull().default(0),
+      successCount: integer("success_count").notNull().default(0),
+      errorCount: integer("error_count").notNull().default(0),
+      memoryCount: integer("memory_count").notNull().default(0),
+      searchCount: integer("search_count").notNull().default(0),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
+    },
+    (table) => {
+      return {
+        usageUnique: uniqueIndex("ux_api_usage_unique").on(
+          table.userId,
+          table.apiKeyId,
+          table.date,
+          table.routeGroup
+        ),
+      };
+    }
+  );
   
 export const memory = pgTable("Memory", {
     id: text("id").primaryKey(),

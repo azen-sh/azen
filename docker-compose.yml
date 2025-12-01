@@ -29,6 +29,18 @@ services:
       - redis
     command: ["bun", "run", "start:worker"]
 
+  metrics-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    image: azen-api:local-test
+    restart: always
+    env_file:
+      - apps/api/.env
+    depends_on:
+      - redis
+    command: ["bun", "run", "start:metrics"]
+
   redis:
     container_name: redis-local
     image: redis:7

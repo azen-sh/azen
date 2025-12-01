@@ -1,13 +1,7 @@
 import { Queue } from "bullmq";
-import { QUEUE_NAME, REDIS_URL } from "../config";
-import IORedis from "ioredis";
+import { QUEUE_NAME } from "../config";
+import { bullRedis } from "../redis/clients";
 
-export const redisConnection = new IORedis(REDIS_URL as string, {
-    maxRetriesPerRequest: null,
+export const embeddingsQueue = new Queue(QUEUE_NAME, {
+  connection: bullRedis,
 });
-
-redisConnection.on("error", (err) => {
-    console.warn("[redis] connection error:", err?.message ?? err);
-  });  
-
-export const embeddingsQueue = new Queue(QUEUE_NAME, { connection: redisConnection });

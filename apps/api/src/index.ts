@@ -2,9 +2,12 @@ import { Hono} from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
-import { verifyApiKey } from "./middlewares/verifyKey";
+import { verifyApiKey } from "./middlewares/apiAuthMiddleware";
 import memoryRoute from "./routes/memory";
 import searchRoute from "./routes/search";
+import usageRoute from "./routes/usage";
+import { trackUsage } from "./middlewares/trackUsage";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app = new Hono();
 const PORT  = Number(process.env.PORT || 8080);
@@ -27,9 +30,14 @@ app.onError((err, c) => {
 });
 
 app.use('*', logger());
-app.use('*', cors());
-app.use("/api/v1/memory/*", verifyApiKey);
-app.use("/api/v1/memory/search/*", verifyApiKey);
+app.use('*', cors({
+    origin: "http://localhost:3002",
+    allowMethods: ["GET", "POST", "DELETE"],
+    allowHeaders: ['Content-Type'],
+    credentials: true,
+}));
+app.use("/api/v1/memory/*", verifyApiKey, trackUsage);
+app.use("/api/v1/usage", authMiddleware);
 
 app.get("/", () => {
     return new Response("Welcome to Azen API", {
@@ -48,6 +56,7 @@ app.get("/api/v1", (c) => {
 
 app.route("/api/v1/memory", memoryRoute);
 app.route("/api/v1/memory/search", searchRoute);
+app.route("/api/v1/usage", usageRoute);
 
 export default {
     port: PORT,

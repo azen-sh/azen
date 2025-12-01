@@ -20,7 +20,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -69,7 +68,7 @@ export function AppSidebar(
   }, [pathname]);
 
   return (
-    <Sidebar collapsible="icon" className="bg-black text-white" {...props}>
+    <Sidebar collapsible="icon" className="bg-black text-white border-r-0!" {...props}>
       <SidebarHeader className="px-4 pt-4 pb-3 mt-1">
         <div
           className={cn(
@@ -101,9 +100,8 @@ export function AppSidebar(
         </div>
       </SidebarHeader>
 
-      {/* MAIN NAV */}
+
       <SidebarContent className="flex h-full flex-col px-2 pb-3 mt-7">
-        {/* MAIN NAV */}
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -128,9 +126,7 @@ export function AppSidebar(
           })}
         </nav>
 
-        {/* SETTINGS BLOCK (outside nav) */}
         <div className="-mt-1">
-          {/* main settings row */}
           <button
             type="button"
             onClick={() => router.push("/settings/account")}
@@ -144,7 +140,6 @@ export function AppSidebar(
             <span className="truncate group-data-[collapsible=icon]:hidden">Settings</span>
           </button>
 
-          {/* submenu – only in expanded mode */}
           {settingsOpen && (
             <div className="mt-2 ml-3 space-y-1 border-l border-neutral-700 pl-5 text-[13px] group-data-[collapsible=icon]:hidden">
               <Link
@@ -182,7 +177,7 @@ export function AppSidebar(
             <span className="group-data-[collapsible=icon]:hidden">Support</span>
           </Link>
           <Link
-            href="https://your-docs-url.com"
+            href="https://docs.azen.sh"
             target="_blank"
             className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-neutral-400 hover:text-white transition group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 cursor-pointer"
           >
@@ -249,7 +244,6 @@ export function AppSidebar(
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

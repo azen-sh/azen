@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import { redisConnection } from '../queue/embedding-queue';
+import { bullRedis } from '../redis/clients';
 import { processEmbeddingJob } from '../jobs/embed-job';
 import { QUEUE_NAME, WORKER_CONCURRENCY, BATCH_SIZE, BATCH_WAIT_MS, DLQ_ATTEMPTS } from '../config';
 import { db, sql, schema } from 'db';
@@ -90,7 +90,7 @@ export function startWorker(opts = { concurrency: WORKER_CONCURRENCY }) {
       });
     },
     {
-      connection: redisConnection,
+      connection: bullRedis,
       concurrency: Number(opts.concurrency ?? WORKER_CONCURRENCY),
       lockDuration: 5 * 60 * 1000,
     }

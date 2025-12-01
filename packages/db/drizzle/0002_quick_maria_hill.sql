@@ -1,0 +1,1 @@
+ALTER TABLE "api_usage" ALTER COLUMN "date" SET DATA TYPE text;
