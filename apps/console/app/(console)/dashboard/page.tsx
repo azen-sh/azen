@@ -62,9 +62,8 @@ export default function App() {
     })) ?? [];
 
   return (
-    <div className="w-full min-h-screen px-3 py-4 bg-black overflow-hidden">
+    <div className="w-full min-h-screen px-3 py-4 bg-[#070708] overflow-hidden">
       <div className="max-w-full">
-        {/* Heading */}
         <div className="mb-2 mt-3">
           <h1 className="text-xl text-white">Overview</h1>
           <p className="mt-1 text-sm text-neutral-400">
@@ -72,9 +71,8 @@ export default function App() {
           </p>
         </div>
 
-        {/* Scroll Panel */}
         <div
-          className="flex h-[calc(100vh-110px)] flex-col rounded-xl border border-neutral-800 bg-[#0b0b0c] p-6 mt-5 -ml-3 -mr-3 mx-[-2px] panel-scroll overflow-y-auto"
+          className="flex h-[calc(100vh-110px)] flex-col rounded-xl border border-neutral-800 bg-[#0C0C0C] p-6 mt-5 -ml-3 -mr-3 mx-[-2px] panel-scroll overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}
         >
           <div className="flex flex-col">
@@ -84,14 +82,13 @@ export default function App() {
 
             {usage && (
               <>
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <SummaryCard
                     title="Total Requests"
                     value={usage.summary.total_requests}
                   />
                   <SummaryCard
-                    title="Success"
+                    title="Successful Requests"
                     value={usage.summary.success_count}
                   />
                   <SummaryCard
@@ -99,13 +96,12 @@ export default function App() {
                     value={usage.summary.memory_count}
                   />
                   <SummaryCard
-                    title="Retrievals"
+                    title="Memory Retrievals"
                     value={usage.summary.search_count}
                   />
                 </div>
 
-                {/* SHADCN CHART */}
-                <div className="rounded-xl border bg-black border-neutral-800 p-4 mb-6">
+                <div className="rounded-xl border border-neutral-800 p-4 mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm text-white">Requests over time</h2>
                     <div className="text-xs text-neutral-400">

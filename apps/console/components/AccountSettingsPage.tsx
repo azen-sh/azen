@@ -16,9 +16,7 @@ export default function AccountSettingsPage({ user }: { user: { name: string; em
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* Centered content container */}
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 py-8">
-        {/* Page title */}
         <div className="space-y-1">
           <h1 className="text-xl font-roboto text-white">Settings</h1>
           <p className="text-sm text-neutral-400">
@@ -26,16 +24,14 @@ export default function AccountSettingsPage({ user }: { user: { name: string; em
           </p>
         </div>
 
-        {/* Account profile label */}
         <div className="flex items-center gap-2 text-sm font-medium text-neutral-200">
           <User2 className="h-4 w-4 text-neutral-400" />
           <span>Account Profile</span>
         </div>
 
 
-        <section className="rounded-3xl border border-neutral-800 bg-[#0d0d0e] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
+        <section className="rounded-3xl border border-neutral-800 bg-[#0C0C0C] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            {/* Avatar */}
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-800 text-base font-semibold text-neutral-50">
                 <Image 
@@ -49,7 +45,6 @@ export default function AccountSettingsPage({ user }: { user: { name: string; em
               </div>
             </div>
 
-            {/* Details */}
             <div className="flex flex-1 flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-3 text-sm">
                 <div>
@@ -66,7 +61,6 @@ export default function AccountSettingsPage({ user }: { user: { name: string; em
                 </div>
               </div>
 
-              {/* Small note on the right */}
               <div className="mt-2 text-[11px] text-neutral-500 md:mt-0 md:text-right">
                 This information is read-only for now.
                 <br />
@@ -76,11 +70,9 @@ export default function AccountSettingsPage({ user }: { user: { name: string; em
           </div>
         </section>
 
-        {/* Sign out label */}
         <div className="text-sm font-medium text-neutral-200">Sign Out</div>
 
-        {/* Sign out card */}
-        <section className="rounded-3xl border border-neutral-800 bg-[#0d0d0e] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
+        <section className="rounded-3xl border border-neutral-800 bg-[#0C0C0C] px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] md:px-8 md:py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-sm font-medium text-white">Sign Out</div>

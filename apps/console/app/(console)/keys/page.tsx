@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Copy, Loader2, Plus, Trash2 } from "lucide-react";
+import { Copy, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { authClient } from "../../lib/auth-client";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function ApiKeysPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<ApiKey | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function loadKeys() {
     try {
@@ -72,7 +73,7 @@ export default function ApiKeysPage() {
     setActionLoading(true);
     try {
       const res = await authClient.apiKey.create({
-        name: `console-${Date.now()}`,
+        name: `console-${new Date().toISOString().slice(0, 10)}`,
         expiresIn: 60 * 60 * 24 * 365,
         prefix: "az_",
         metadata: { createdFrom: "azen-console" },
@@ -92,7 +93,13 @@ export default function ApiKeysPage() {
 
   async function handleCopy() {
     if (!createdKey) return;
-    await navigator.clipboard.writeText(createdKey);
+    try {
+      await navigator.clipboard.writeText(createdKey);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("copy failed", err);
+    }
   }
 
   function confirmDelete(key: ApiKey) {
@@ -119,7 +126,6 @@ export default function ApiKeysPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 pt-5">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 p-2">
         <div>
           <h1 className="text-xl font text-white">API Keys</h1>
@@ -148,8 +154,7 @@ export default function ApiKeysPage() {
         </Button>
       </div>
 
-      {/* Table */}
-      <section className="flex-1 rounded-2xl border border-neutral-800 bg-neutral-950/95 p-5">
+      <section className="flex-1 rounded-2xl border border-neutral-800 bg-[#0C0C0C] p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-white">Your keys</h2>
           <p className="text-xs text-neutral-500">
@@ -226,7 +231,6 @@ export default function ApiKeysPage() {
         </div>
       </section>
 
-      {/* 1) Confirm create */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="sm:max-w-md border-neutral-800 bg-neutral-950 text-white">
           <DialogHeader>
@@ -267,7 +271,6 @@ export default function ApiKeysPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 2) New key dialog – with non-overflow layout */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-xl border-neutral-800 bg-neutral-950 text-white">
           <DialogHeader>
@@ -281,13 +284,11 @@ export default function ApiKeysPage() {
           <div className="mt-4 space-y-2">
             <div className="rounded-xl border border-neutral-800 bg-black px-3 py-3">
               <div className="flex items-start gap-2">
-                {/* Text column */}
                 <div className="flex-1 max-h-24 overflow-y-auto">
                   <code className="block break-all text-xs font-mono text-neutral-100">
                     {createdKey}
                   </code>
                 </div>
-                {/* Copy button */}
                 <Button
                   type="button"
                   size="icon"
@@ -295,7 +296,13 @@ export default function ApiKeysPage() {
                   className="mt-0.5 shrink-0 text-neutral-300 hover:bg-neutral-800 hover:text-white cursor-pointer"
                   onClick={handleCopy}
                 >
-                  <Copy className="h-4 w-4" />
+                  {copied ? (
+                    <span className="inline-flex items-center gap-2 text-green-400">
+                      <Check className="h-4 w-4" />
+                    </span>
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>

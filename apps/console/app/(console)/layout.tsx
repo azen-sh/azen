@@ -19,7 +19,7 @@ export default async function ConsoleLayout({
       <SidebarProvider>
         <AppSidebar user={user} />
         <SidebarInset>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-black text-white">
+          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 bg-[#070708] text-white">
             {children}
             <Toaster richColors closeButton position="top-right" />  
           </div>
