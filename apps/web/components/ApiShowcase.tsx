@@ -6,7 +6,7 @@ import Image from "next/image"
 type MediaItem =
   | {
       type: "code"
-      step?: number // optional step mapping
+      step?: number 
       language?: "js" | "ts" | "bash" | "curl"
       code: string
       caption?: string
