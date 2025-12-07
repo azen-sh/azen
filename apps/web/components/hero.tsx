@@ -40,13 +40,14 @@ export default function Hero() {
           </div>
 
           <div className="md:col-span-5 lg:col-span-6 flex justify-center">
-            <div className="relative w-full max-w-lg h-[350px] sm:h-[450px] md:h-[600px] rounded-3xl overflow-hidden bg-[#0f1113]">
+            <div className="relative w-full max-w-lg rounded-3xl overflow-hidden bg-[#0f1113]">
               <Image
                 src="/hero.png"
                 alt="Azen Memory Layer Preview"
-                fill
+                width={700}
+                height={800}
                 priority
-                className="object-contain"
+                className="w-full h-auto block"
               />
             </div>
           </div>

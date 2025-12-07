@@ -26,30 +26,28 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white text-sm mb-4">Product</h4>
+            <h4 className="text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400 font-light">
               <li><a href="#" className="hover:text-white transition">About</a></li>
-              <li><a href="#" className="hover:text-white transition">Features</a></li>
-              <li><a href="#" className="hover:text-white transition">Dashboard</a></li>
+              <li><a href="https://app.azen.sh" className="hover:text-white transition">Dashboard</a></li>
               <li><a href="#" className="hover:text-white transition">Pricing</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-white text-sm mb-4">Resources</h4>
+            <h4 className="text-white mb-4">Resources</h4>
             <ul className="space-y-2 text-sm text-gray-400 font-light">
               <li><a href="#" className="hover:text-white transition">Docs</a></li>
               <li><a href="#" className="hover:text-white transition">API Reference</a></li>
-              <li><a href="#" className="hover:text-white transition">Guides</a></li>
-              <li><a href="#" className="hover:text-white transition">Examples</a></li>
+              <li><a href="#" className="hover:text-white transition">Terms</a></li>
+              <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-white text-sm mb-4">Legal</h4>
+            <h4 className="text-white mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-400 font-light">
-              <li><a href="#" className="hover:text-white transition">Terms</a></li>
-              <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+              <li><a href="mailto:govindvashishat@gmail.com" className="hover:text-white transition">Support</a></li>
             </ul>
           </div>
         </div>
