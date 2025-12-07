@@ -25,7 +25,7 @@ export default function DashboardPreview() {
             bg-neutral-900
             shadow-xl
             max-w-6xl mx-auto
-            h-[570px]
+            h-[200px] sm:h-[400px] md:h-[500px] lg:h-[570px]
           "
         >
           <Image
@@ -33,7 +33,7 @@ export default function DashboardPreview() {
             alt="Azen dashboard preview"
             fill
             priority
-            className="object-contain"
+            className="object-contain object-top"
           />
           <div
             className="absolute inset-x-0 bottom-0 h-36 pointer-events-none"

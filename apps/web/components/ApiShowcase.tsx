@@ -1,23 +1,14 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import Image from "next/image"
+import React, { useEffect, useMemo, useState } from "react"
 
-type MediaItem =
-  | {
-      type: "code"
-      step?: number 
-      language?: "js" | "ts" | "bash" | "curl"
-      code: string
-      caption?: string
-    }
-  | {
-      type: "video" | "gif" | "image"
-      step?: number
-      src: string
-      alt?: string
-      caption?: string
-    }
+type MediaItem = {
+  type: "code"
+  step?: number
+  language?: "ts"
+  code: string
+  caption?: string
+}
 
 export default function ApiShowcase({
   initial = 1,
@@ -30,96 +21,148 @@ export default function ApiShowcase({
 }) {
   const steps = [
     {
-      title: "Build & deploy your memory pipeline",
-      desc:
-        "Create memories, attach metadata, and push to Azen with a single call.",
+      title: "Create memory",
+      desc: "Create memories, attach metadata, and push to Azen with a single call.",
     },
     {
-      title: "Agent uses stored context",
-      desc: "Agents retrieve relevant memories to make responses personal and accurate.",
+      title: "Search memory",
+      desc: "Retrieve the most relevant memories for an agent or query.",
     },
     {
-      title: "Refine & optimize",
-      desc: "Tune ranking, adjust filters, and improve memory relevance over time.",
-    },
-    {
-      title: "Escalate to humans",
-      desc: "Route complex issues to a human operator when needed.",
-    },
-    {
-      title: "Monitor usage & insights",
-      desc: "See requests, creates, retrievals, and workspace activity in one place.",
+      title: "Fetch all memories",
+      desc: "List or paginate through stored memories for inspection or export.",
     },
   ]
 
-  // state
-  const [active, setActive] = useState<number>(initial)
+  const tsSnippets: MediaItem[] = [
+    {
+      step: 1,
+      type: "code",
+      caption: "Create memory (TypeScript)",
+      code: `const response = await fetch("https://api.azen.sh/api/v1/memory", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "azen-api-key": process.env.AZEN_API_KEY!,
+  },
+  body: JSON.stringify({
+    text: "User likes cold brew coffee",
+    dedupKey: "preference:coffee",
+  }),
+})
 
-  // Build a map of step -> media items (allows multiple per step)
+const data = await response.json()
+console.log(data)`,
+    },
+    {
+      step: 2,
+      type: "code",
+      caption: "Search memory (TypeScript)",
+      code: `const response = await fetch("https://api.azen.sh/api/v1/memory/search", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "azen-api-key": process.env.AZEN_API_KEY!,
+  },
+  body: JSON.stringify({
+    query: "What drinks does the user like?",
+    topK: 5,
+  }),
+})
+
+const results = await response.json()
+console.log(results)`,
+    },
+    {
+      step: 3,
+      type: "code",
+      caption: "List memories (TypeScript)",
+      code: `const response = await fetch(
+  "https://api.azen.sh/api/v1/memory?page=1&per=20",
+  {
+    method: "GET",
+    headers: {
+      "azen-api-key": process.env.AZEN_API_KEY!,
+    },
+  }
+)
+
+const memories = await response.json()
+console.log(memories)`,
+    },
+  ]
+
+  const mergedMedia = media.length ? media : tsSnippets
+
+  const [active, setActive] = useState<number>(initial)
+  const [index, setIndex] = useState<number>(0)
+
   const mediaByStep = useMemo(() => {
     const map = new Map<number, MediaItem[]>()
-    media.forEach((m) => {
-      const stepIndex = (m as any).step ?? 0 // 0 = general / fallback
-      const arr = map.get(stepIndex) ?? []
+    mergedMedia.forEach((m) => {
+      const k = m.step ?? 0
+      const arr = map.get(k) ?? []
       arr.push(m)
-      map.set(stepIndex, arr)
+      map.set(k, arr)
     })
     return map
-  }, [media])
+  }, [mergedMedia])
 
-  // choose media for currently active step, else fallback to step 0 or first available
-  const currentMedia = useMemo<MediaItem | null>(() => {
-    const candidates = mediaByStep.get(active) ?? mediaByStep.get(0) ?? media
-    if (!candidates || candidates.length === 0) return null
-    // prefer first candidate (you can extend to carousel)
-    return candidates[0] ?? null
-  }, [active, mediaByStep, media])
+  const candidates = useMemo(() => {
+    return mediaByStep.get(active) ?? mediaByStep.get(0) ?? mergedMedia
+  }, [active, mediaByStep, mergedMedia])
+
+  useEffect(() => {
+    setIndex(0)
+  }, [active])
+
+  const current = candidates?.[index]
 
   return (
     <section className="bg-black text-white py-24 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-          {/* LEFT: Numbered steps column */}
-          <div className="pr-4">
-            <h3 className="text-sm text-slate-400 mb-4">How it works</h3>
-            <h2 className="text-4xl md:text-5xl font-light text-[#E6E6E6] leading-tight mb-8">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
+
+          <div>
+            <span className="inline-block mb-4 px-3 py-1 rounded-full text-xs bg-white/10 text-[#E6E6E6]">
+              How it Works
+            </span>
+
+            <h2 className="text-4xl md:text-5xl font-light text-[#E6E6E6] leading-tight mb-4">
               An end-to-end flow for adding memory to your AI apps
             </h2>
+
+            <p className="text-base text-gray-400 mb-12 max-w-xl">
+              Click a step to update the interactive preview.
+            </p>
 
             <div className="space-y-6">
               {steps.map((s, i) => {
                 const idx = i + 1
                 const isActive = idx === active
+
                 return (
                   <button
                     key={i}
                     onClick={() => setActive(idx)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        setActive(idx)
-                      }
-                    }}
-                    className={`w-full text-left flex items-start gap-6 p-4 rounded-lg focus:outline-none ${
+                    className={`w-full text-left flex items-start gap-5 p-5 rounded-xl transition border ${
                       isActive
-                        ? "bg-neutral-900 border border-neutral-800 shadow-sm"
-                        : "opacity-60 hover:opacity-90"
+                        ? "bg-[#0f1113] border-neutral-900"
+                        : "border-transparent opacity-60 hover:opacity-90"
                     }`}
-                    aria-current={isActive ? "true" : "false"}
                   >
-                    <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
-                        isActive ? "bg-amber-50 text-black" : "bg-white/5 text-slate-300"
-                      }`}
-                    >
-                      {idx.toString().padStart(2, "0")}
+                    <div className={`w-9 text-xs ${isActive ? "text-white" : "text-slate-300"}`}>
+                      {idx}
                     </div>
 
                     <div>
-                      <div className={`text-base font-semibold ${isActive ? "text-white" : "text-slate-300"}`}>
+                      <div className={`${isActive ? "text-white" : "text-slate-300"}`}>
                         {s.title}
                       </div>
-                      <div className="text-sm text-slate-400 mt-1 leading-relaxed">{s.desc}</div>
+                      <div className="text-sm text-gray-400 mt-1 max-w-sm">
+                        {s.desc}
+                      </div>
                     </div>
                   </button>
                 )
@@ -127,69 +170,26 @@ export default function ApiShowcase({
             </div>
           </div>
 
-          {/* RIGHT: Interactive visual panel */}
-          <div className="relative">
-            <div className="rounded-3xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-xl">
-              <div className="p-6 md:p-8 flex items-start">
-                <div className="w-full rounded-2xl bg-white/3 p-4 md:p-6">
-                  {/* media area */}
-                  <div className="relative w-full rounded-xl overflow-hidden bg-neutral-800" style={{ minHeight: 420 }}>
-                    {currentMedia ? (
-                      currentMedia.type === "code" ? (
-                        <div className="p-6 md:p-8">
-                          <div className="mb-3 text-xs text-slate-300">API Endpoint</div>
-                          <pre className="bg-black/90 rounded-md p-4 text-xs font-mono text-green-400 overflow-auto">
-                            {(currentMedia as any).code}
-                          </pre>
-                          {showCaption && currentMedia.caption ? (
-                            <div className="mt-3 text-sm text-slate-400">{currentMedia.caption}</div>
-                          ) : null}
-                        </div>
-                      ) : currentMedia.type === "video" || currentMedia.type === "gif" ? (
-                        <video
-                          className="w-full h-full object-cover"
-                          src={(currentMedia as any).src}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                        />
-                      ) : (
-                        <div className="relative h-[420px] md:h-[520px] w-full">
-                          <Image
-                            src={(currentMedia as any).src}
-                            alt={(currentMedia as any).alt ?? "Azen visual"}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      )
-                    ) : (
-                      // fallback: existing screenshot if no media provided
-                      <div className="relative h-[420px] md:h-[520px] w-full">
-                        <Image src="/dash.png" alt="Azen dashboard preview" fill className="object-cover" />
-                      </div>
-                    )}
+          <div>
+            <div className="relative rounded-3xl bg-[#0f1113] border border-neutral-900 shadow-xl overflow-hidden">
 
-                    {/* small in-panel caption area */}
-                    {showCaption && currentMedia && currentMedia.caption ? (
-                      <div className="absolute left-6 bottom-6 bg-black/80 text-slate-300 text-sm px-3 py-2 rounded-md">
-                        {currentMedia.caption}
-                      </div>
-                    ) : null}
+              <div className="relative w-full h-[520px] md:h-[620px] bg-[radial-gradient(ellipse_at_bottom,#1a1f2b_0%,#0f1113_45%,#08090a_100%)]">
 
-                    {/* optional overlay frame */}
-                    <div className="absolute inset-0 pointer-events-none rounded-xl ring-1 ring-white/4" />
-                  </div>
+                <div className="absolute inset-0 flex items-center justify-center p-6">
+                  <pre className="bg-black/90 rounded-xl p-6 text-sm font-mono leading-relaxed max-h-[85%] overflow-auto text-[#E6E6E6]">
+                    {current?.code}
+                  </pre>
                 </div>
+
+                {showCaption && current?.caption && (
+                  <div className="absolute left-5 bottom-5 bg-black/80 text-slate-300 text-sm px-3 py-2 rounded-md">
+                    {current.caption}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* caption below visual */}
-            <div className="mt-4 text-sm text-slate-500">
-              Click a step to preview its API endpoint or demo visualization.
-            </div>
           </div>
+
         </div>
       </div>
     </section>
