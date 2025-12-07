@@ -37,8 +37,8 @@ export default function Footer() {
           <div>
             <h4 className="text-white mb-4">Resources</h4>
             <ul className="space-y-2 text-sm text-gray-400 font-light">
-              <li><a href="#" className="hover:text-white transition">Docs</a></li>
-              <li><a href="#" className="hover:text-white transition">API Reference</a></li>
+              <li><a href="https://docs.azen.sh" className="hover:text-white transition">Docs</a></li>
+              <li><a href="https://docs.azen.sh/api-reference/introduction" className="hover:text-white transition">API Reference</a></li>
               <li><a href="#" className="hover:text-white transition">Terms</a></li>
               <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
             </ul>

@@ -23,8 +23,8 @@ export default function Navigation() {
             <Image
               src="/logo.png"
               alt="Azen Logo"
-              width={48}
-              height={48}
+              width={36}
+              height={36}
               className="object-contain"
             />
           </div>
@@ -109,7 +109,7 @@ export default function Navigation() {
                     Features
                   </Link>
                   <Link
-                    href="#docs"
+                    href="https://docs.azen.sh"
                     className="text-gray-400 hover:text-white text-base"
                     onClick={() => {}}
                   >
