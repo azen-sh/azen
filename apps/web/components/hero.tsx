@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function Hero() {
   return (
@@ -12,7 +13,7 @@ export default function Hero() {
             </h1>
 
             <p className="mt-6 text-lg md:text-xl text-gray-400 font-light max-w-2xl leading-relaxed">
-              Azen is a memory layer with clean APIs for storing, retrieving, and ranking context with real-time metrics and secure workspace management.
+              Azen is a memory layer with clean APIs for storing, retrieving, and ranking context with real-time metrics and workspace management.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -22,14 +23,14 @@ export default function Hero() {
                 </Button>
               </a>
 
-              <a href="https://azen.sh/about">
+              <Link href="/about">
                 <Button
                   variant="outline"
                   className="rounded-full border-0 text-white hover:text-white bg-[#171719] hover:bg-[#1d1d20] px-5 py-3 cursor-pointer"
                 >
                   About Us
                 </Button>
-              </a>
+              </Link>
             </div>
 
             <div className="mt-6 flex items-center gap-4 text-sm text-gray-400">

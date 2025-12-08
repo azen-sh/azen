@@ -1,6 +1,7 @@
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import Image from "next/image"
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -28,9 +29,8 @@ export default function Footer() {
           <div>
             <h4 className="text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400 font-light">
-              <li><a href="#" className="hover:text-white transition">About</a></li>
+              <li><a href="/about" className="hover:text-white transition">About</a></li>
               <li><a href="https://app.azen.sh" className="hover:text-white transition">Dashboard</a></li>
-              <li><a href="#" className="hover:text-white transition">Pricing</a></li>
             </ul>
           </div>
 
@@ -39,8 +39,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gray-400 font-light">
               <li><a href="https://docs.azen.sh" className="hover:text-white transition">Docs</a></li>
               <li><a href="https://docs.azen.sh/api-reference/introduction" className="hover:text-white transition">API Reference</a></li>
-              <li><a href="#" className="hover:text-white transition">Terms</a></li>
-              <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+              <li><Link href="/terms" className="hover:text-white transition">Terms</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link></li>
             </ul>
           </div>
 

@@ -20,7 +20,7 @@ export default function CTA() {
         </h2>
         <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8">
           Azen provides fast memory creation, retrieval, vector search, and real-time usage insights.
-          Get started and make your AI applications truly stateful across sessions
+          Get started and make your AI applications truly stateful.
         </p>
         <a href="https://app.azen.sh">
           <button

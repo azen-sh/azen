@@ -72,13 +72,17 @@ export default function LoginPage() {
           {/* Legal / meta */}
           <p className="text-center text-[11px] leading-relaxed text-neutral-500">
             By signing in, you agree to the{" "}
-            <button className="underline underline-offset-2 hover:text-neutral-300">
+            <a
+            href="https://azen.sh/terms"
+            className="underline underline-offset-2 hover:text-neutral-300">
               Terms of Service
-            </button>{" "}
+            </a>{" "}
             and{" "}
-            <button className="underline underline-offset-2 hover:text-neutral-300">
+            <a 
+            href="https://azen.sh/privacy"
+            className="underline underline-offset-2 hover:text-neutral-300">
               Privacy Policy
-            </button>
+            </a>
             .
           </p>
         </div>

@@ -30,8 +30,8 @@ export default function Navigation() {
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-gray-400 hover:text-white transition">
-              Features
+            <Link href="/about" className="text-gray-400 hover:text-white transition">
+              About
             </Link>
             <a 
               href="https://docs.azen.sh" 
@@ -40,9 +40,9 @@ export default function Navigation() {
               className="text-gray-400 hover:text-white transition">
               Docs
             </a>
-            <Link href="#company" className="text-gray-400 hover:text-white transition">
-              Team
-            </Link>
+            <a href="https://app.azen.sh/dashboard" className="text-gray-400 hover:text-white transition">
+              Dashboard
+            </a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -93,6 +93,9 @@ export default function Navigation() {
                         height={36}
                         className="object-contain"
                       />
+                      <h3 className="text-white tracking-tight">
+                        Azen
+                      </h3>
                     </div>
                   </div>
                   <SheetDescription className="mt-5 text-sm text-white">
@@ -102,11 +105,11 @@ export default function Navigation() {
 
                 <nav className="px-4 mt-4 flex flex-col gap-4">
                   <Link
-                    href="#features"
+                    href="/about"
                     className="text-gray-400 hover:text-white text-base"
                     onClick={() => {}}
                   >
-                    Features
+                    About
                   </Link>
                   <Link
                     href="https://docs.azen.sh"
@@ -115,13 +118,13 @@ export default function Navigation() {
                   >
                     Docs
                   </Link>
-                  <Link
-                    href="#company"
+                  <a
+                    href="https://app.azen.sh/dashboard"
                     className="text-gray-400 hover:text-white text-base"
                     onClick={() => {}}
                   >
-                    Team
-                  </Link>
+                  Dashboard
+                  </a>
                 </nav>
 
                 <SheetFooter className="px-4 mt-6">
