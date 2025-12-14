@@ -65,6 +65,7 @@ jobs:
                     cat >/home/${{ secrets.DROPLET_USER }}/azen/apps/api/.env <<'EOF'
                     PORT=${{ secrets.PORT }}
                     NODE_ENV=${{ secrets.NODE_ENV }}
+                    AZEN_MASTER_KEY=${{ secrets.AZEN_MASTER_KEY }}
                     BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
                     DATABASE_URL=${{ secrets.DATABASE_URL }}
                     OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
