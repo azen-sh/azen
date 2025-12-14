@@ -33,7 +33,6 @@ export async function processEmbeddingJob(payload: EmbedPayLoad) {
     })
     .where(eq(memory.id, memoryID));
 
-
     if(payload.jobId) {
         await db
         .update(embeddingJob)

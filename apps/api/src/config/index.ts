@@ -13,6 +13,7 @@ export const REDIS_URL = isProd
     ? process.env.REDIS_URL_PROD 
     : process.env.REDIS_URL_DEV ?? 'redis://localhost:6379';
 
+export const AZEN_MASTER_KEY = process.env.AZEN_MASTER_KEY;
 export const QUEUE_NAME = process.env.QUEUE_NAME || 'embeddings';
 export const WORKER_CONCURRENCY = Number(process.env.WORKER_CONCURRENCY ?? 4);
 export const BATCH_SIZE = Number(process.env.BATCH_SIZE ?? 5);

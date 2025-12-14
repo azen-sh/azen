@@ -29,6 +29,20 @@
       "when": 1764431767175,
       "tag": "0003_fair_human_robot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765731996986,
+      "tag": "0004_tranquil_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765732680794,
+      "tag": "0005_pale_anthem",
+      "breakpoints": true
     }
   ]
 }

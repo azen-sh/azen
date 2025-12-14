@@ -1,6 +1,5 @@
 import { createMiddleware } from "hono/factory";
 import { metricsRedis as redis } from "../redis/clients";
-import { randomUUID } from "crypto";
 
 const TTL = 60 * 60 * 24 * 7;
 const KEY_PREFIX = "usage";
@@ -44,7 +43,6 @@ export const trackUsage = createMiddleware(async (c, next) => {
       const date = new Date().toISOString().slice(0, 10);
       const key = `${KEY_PREFIX}:${userId}:${apiKeyId}:${date}:${routeGroup}`;
 
-      const traceId = randomUUID().slice(0, 8);
       const pipeline = redis.pipeline();
       pipeline.hincrby(key, "totalRequests", 1);
       pipeline.hincrby(key, success ? "successCount" : "errorCount", 1);

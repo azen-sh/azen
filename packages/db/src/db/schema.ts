@@ -5,7 +5,6 @@ import {
     boolean,
     integer,
     json,
-    date,
     uniqueIndex,
 } from "drizzle-orm/pg-core";
   
@@ -129,7 +128,9 @@ export const memory = pgTable("Memory", {
     userId: text("user_id")
         .notNull()
         .references(() => user.id, { onDelete: "cascade" }),
-    content: text("content").notNull(),
+    encryptedContent: text("encrypted_content").notNull(),
+    iv: text("iv").notNull(),
+    tag: text("tag").notNull(),
     metadata: json("metadata"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     embedded: boolean("embedded").default(false),

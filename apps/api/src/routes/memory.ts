@@ -5,6 +5,7 @@ import { db, schema, and, sql, eq, desc } from "db";
 import { randomUUID } from "crypto";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
+import { decryptText, encryptText } from "../lib/encrypt";
 
 const router = new Hono();
 
@@ -59,12 +60,16 @@ router.post("/", async (c) => {
     };
 
     const memId = randomUUID();
+    const { ciphertext, iv, tag } = encryptText(text);
+
     const [rec] = await db
     .insert(memory)
     .values({
         id: memId,
         userId,
-        content: text,
+        encryptedContent: ciphertext,
+        iv,
+        tag,
         metadata: normalizedDedupKey ? { normalizedDedupKey } : null,
     }).returning();
 
@@ -89,7 +94,7 @@ router.post("/", async (c) => {
     await embeddingsQueue.add('embed', {
         jobId: jobRec.id,
         memoryId: rec.id,
-        text: rec.content,
+        text: text,
         userId,
     }, {
         attempts: Number(process.env.DLQ_ATTEMPTS ?? 5),
@@ -121,7 +126,9 @@ router.get("/", async (c) => {
     const items = await db
     .select({
         id: memory.id,
-        content: memory.content,
+        encryptedContent: memory.encryptedContent,
+        iv: memory.iv,
+        tag: memory.tag,
         metadata: memory.metadata,
         createdAt: memory.createdAt,
         embedded: memory.embedded,
@@ -131,10 +138,18 @@ router.get("/", async (c) => {
     .orderBy(desc(memory.createdAt))
     .offset(offset)
     .limit(per);
+
+    const memories = items.map((m) => ({
+        id: m.id,
+        content: decryptText(m.encryptedContent, m.iv, m.tag),
+        metadata: m.metadata,
+        createdAt: m.createdAt,
+        embedded: m.embedded,
+    }));
     
     return c.json({ 
         status: "success",
-        memories: items, 
+        memories, 
         page, 
         per 
     });
@@ -174,9 +189,17 @@ router.get('/:id', async(c) => {
         }, 200);
     }; 
 
+    const content = decryptText(rec.encryptedContent, rec.iv, rec.tag);
+
     return c.json({
         status: "success",
-        memory: rec,
+        memory: {
+            id: rec.id,
+            content,
+            metadata: rec.metadata,
+            creadetAt: rec.createdAt,
+            embedded: rec.embedded,
+        },
     }, 200);
 });
 
