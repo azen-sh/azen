@@ -19,7 +19,7 @@ export default function Navigation() {
   return (
     <nav className="w-full z-50 bg-black border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center">
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-12">
           <div className="flex items-center">
             <div className="flex items-center justify-center w-12 h-12 rounded-xl">
               <Image
@@ -35,6 +35,7 @@ export default function Navigation() {
             </span>
           </div>
 
+          {/* Nav links */}
           <div className="hidden md:flex items-center gap-7 text-sm">
             <Link href="/about" className="text-neutral-400 hover:text-white transition">
               About
