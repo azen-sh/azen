@@ -5,6 +5,7 @@ export type User = {
     id: string;
     name: string;
     email: string;
+    verified: boolean;
     image: string | null;
 }
 
@@ -21,6 +22,7 @@ export async function getCurrentUser(): Promise<User | null> {
         id: user.id,
         name: user.name ?? "Account",
         email: user.email ?? "",
+        verified: user.emailVerified,
         image: user.image ?? null,
     };
 };

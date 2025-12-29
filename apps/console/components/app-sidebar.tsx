@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/app/lib/auth-client";
 import Image from "next/image";
-
 import {
   LayoutDashboard,
   KeyRound,
@@ -14,7 +13,6 @@ import {
   HelpCircle,
   BookOpen,
 } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -50,14 +48,13 @@ export function AppSidebar(
 ) {
   const pathname = usePathname();
   const router = useRouter();
-
   const { user } = props;
 
   function handleSignOut() {
     signOut().then(() => {
       router.push("/login");
     });
-  };
+  }
 
   const [settingsOpen, setSettingsOpen] = React.useState(
     pathname.startsWith("/settings")
@@ -80,12 +77,12 @@ export function AppSidebar(
         >
           <div className="flex items-center gap-2">
             <button className="flex h-8 w-8 items-center justify-center rounded-full">
-             <Image
-              src="/logo.png"
-              alt="Your Logo"
-              width={28}
-              height={28}
-             />
+              <Image
+                src="/logo.png"
+                alt="Your Logo"
+                width={28}
+                height={28}
+              />
             </button>
             <span
               className={cn(
@@ -99,7 +96,6 @@ export function AppSidebar(
           <SidebarTrigger className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-900 hover:text-white cursor-pointer" />
         </div>
       </SidebarHeader>
-
 
       <SidebarContent className="flex h-full flex-col px-2 pb-3 mt-7">
         <nav className="space-y-1">
@@ -164,10 +160,8 @@ export function AppSidebar(
           )}
         </div>
 
-        {/* push Support/Docs + footer down */}
         <div className="flex-1" />
 
-        {/* SUPPORT + DOCS (unchanged, just make sure labels hide in icon mode) */}
         <div className="space-y-1 px-1 pb-2">
           <Link
             href="mailto:govindvashishat@gmail.com"
@@ -187,30 +181,34 @@ export function AppSidebar(
         </div>
       </SidebarContent>
 
-      {/* BOTTOM: account dropdown (unchanged) */}
       <SidebarFooter className="border-t border-neutral-900 px-2 py-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
                 "flex w-full items-center gap-2 rounded-xl bg-neutral-950 px-3 py-2 text-left text-xs text-neutral-200 cursor-pointer",
-                // when sidebar is collapsed to icon, make this a small round button
                 "group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-full"
               )}
             >
               <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-neutral-700 text-[11px] font-medium">
-                <Image
-                  src={user.image ?? ""}
-                  alt="User Avatar"
-                  width={28}
-                  height={28}
-                  className="object-cover"
-                  priority
-                />
+                {user.image ? (
+                  <Image
+                    src={user.image}
+                    alt="User Avatar"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 object-cover rounded-full"
+                    priority
+                  />
+                ) : (
+                  <span className="font-semibold text-white leading-none">
+                    {user.name?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                )}
               </div>
 
               <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-medium">{user.name}&apos;s Workspace</span>
+                <span className="truncate font-medium">{user.name}'s Workspace</span>
                 <span className="truncate text-[10px] text-neutral-400">
                   {user.email}
                 </span>

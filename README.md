@@ -26,16 +26,13 @@ This is a **Turborepo-powered monorepo**.
 ### Apps
 
 * `apps/api` – Core Azen API (memory, search, auth, usage tracking)
-* `apps/web` – Marketing website (landing, pricing, public pages)
+* `apps/web` – Marketing website (landing, public pages)
 * `apps/console` – User dashboard (API keys, usage, memory management)
 
 ### Packages
 
 * `packages/db` – Database schema, migrations, and shared DB utilities
 * `packages/auth` – Shared authentication configuration (Better Auth) used by API and Console
-* `@repo/ui` – Shared UI components
-* `@repo/eslint-config` – Shared ESLint configuration
-* `@repo/typescript-config` – Shared TypeScript configuration
 
 All packages and apps are written in **TypeScript**.
 
@@ -52,8 +49,6 @@ Security is treated as a baseline, not an add-on.
 
 ---
 
----
-
 ## Status
 
 Azen is under active development.
@@ -63,15 +58,6 @@ Azen is under active development.
 * Features may change rapidly
 
 This repository reflects real infrastructure work in progress.
-
----
-
-## Philosophy
-
-* Infrastructure > demos
-* Correctness > shortcuts
-* Security > convenience
-* Simple APIs > hidden magic
 
 ---
 

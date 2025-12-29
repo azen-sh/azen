@@ -9,8 +9,8 @@ export default async function ConsoleLayout({
   }: {
     children: React.ReactNode
   }) {
-    
     const user = await getCurrentUser();
+    
     if(!user) {
         redirect("/login");
     };

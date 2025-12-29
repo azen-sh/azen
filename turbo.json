@@ -12,9 +12,14 @@
         "DATABASE_URL",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
         "BETTER_AUTH_SECRET",
         "NEXT_CONSOLE_URL_DEV",
-        "NEXT_CONSOLE_URL_PROD"
+        "NEXT_CONSOLE_URL_PROD",
+        "RESEND_API_KEY",
+        "EMAIL_SENDER_NAME",
+        "EMAIL_SENDER_ADDRESS"
       ]
     },
     "lint": {
@@ -32,9 +37,14 @@
         "DATABASE_URL",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
         "BETTER_AUTH_SECRET",
         "NEXT_CONSOLE_URL_DEV",
-        "NEXT_CONSOLE_URL_PROD"
+        "NEXT_CONSOLE_URL_PROD",
+        "RESEND_API_KEY",
+        "EMAIL_SENDER_NAME",
+        "EMAIL_SENDER_ADDRESS"
       ]
     }
   }

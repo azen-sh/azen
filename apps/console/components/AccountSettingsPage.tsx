@@ -9,8 +9,12 @@ import Image from "next/image";
 export default function AccountSettingsPage({ user }: { user: { name: string; email: string; image: string | null } }) {
   const router = useRouter();
   function handleSignOut() {
-    signOut().then(() => {
-      router.push("/login");
+    signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login");
+        },
+      },
     });
   };
 
