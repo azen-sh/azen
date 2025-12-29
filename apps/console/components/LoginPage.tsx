@@ -135,7 +135,7 @@ export default function LoginPage() {
               type="button"
               disabled={loading}
               onClick={handleEmailSignin}
-              className="w-full rounded-md bg-white py-2 text-sm font-medium text-black hover:bg-neutral-200 cursor-pointer"
+              className="w-full rounded-md bg-white py-2 text-sm font-medium text-black hover:bg-neutral-200 cursor-pointer mt-1"
             >
               Continue with email
             </Button>
