@@ -5,7 +5,7 @@ import { db, sql } from "db";
 const KEY_PREFIX = "usage";
 const KEYS_SET = `${KEY_PREFIX}:keys`;
 const BATCH_SIZE = 200;
-const SYNC_INTERVAL = 60 * 1000; 
+const SYNC_INTERVAL = 10 * 60 * 1000; 
 
 function parseKey(k: string) {
   const parts = k.split(":");
@@ -104,13 +104,6 @@ async function processBatch(keys: string[]) {
 }
 
 export async function runSyncWorker() {
-  try {
-    await db.execute(sql`SELECT 1 as test`);
-  } catch (dbErr) {
-    console.error("[syncWorker] Database connection failed:", dbErr);
-    return;
-  }
-
   const keys = await redis.smembers(KEYS_SET);
   if (!keys.length) return;
 
