@@ -1,0 +1,574 @@
+openapi: 3.0.3
+
+info:
+  title: Azen API
+  version: 1.0.0
+  description: >
+    Azen Memory API for storing, retrieving, and searching user memories.
+
+servers:
+  - url: https://api.azen.sh/api/v1
+    description: Production API
+
+security:
+  - AzenApiKey: []
+
+components:
+  securitySchemes:
+    AzenApiKey:
+      type: apiKey
+      in: header
+      name: azen-api-key
+
+  schemas:
+
+    Memory:
+      type: object
+      required: [id, content, createdAt, embedded]
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        embedded:
+          type: boolean
+
+    CreateMemoryRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          example: User likes cold brew coffee
+        dedupKey:
+          type: string
+          nullable: true
+          example: preference:coffee
+
+    CreateMemoryResponse:
+      type: object
+      required: [status, memoryId, createdAt, embeddingStatus]
+      properties:
+        status:
+          type: string
+          example: success
+        memoryId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        embeddingStatus:
+          type: string
+          example: processing
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          example: What drinks does the user like?
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+
+    RawMatch:
+      type: object
+      required: [id, score]
+      properties:
+        id:
+          type: string
+        score:
+          type: number
+
+    ErrorResponse:
+      type: object
+      required: [status, message, code]
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Error message
+        code:
+          type: integer
+          example: 400
+        details:
+          type: object
+          nullable: true
+
+paths:
+
+  /memory:
+
+    post:
+      summary: Create a new memory
+      description: >
+        Stores a memory for the authenticated user and queues it for embedding.
+        If a `dedupKey` is provided and matches an existing memory,
+        the existing one is returned instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMemoryRequest"
+
+      responses:
+        "201":
+          description: Memory accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateMemoryResponse"
+              example:
+                status: success
+                memoryId: "a1ed9d9e-44b3-4e7b-bc47-084c65a3e921"
+                createdAt: "2025-01-01T12:10:33.000Z"
+                embeddingStatus: processing
+
+        "200":
+          description: Memory already exists (deduplication)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, memoryId, duplicated, message]
+                properties:
+                  status:
+                    type: string
+                  memoryId:
+                    type: string
+                    format: uuid
+                  duplicated:
+                    type: boolean
+                  message:
+                    type: string
+              example:
+                status: success
+                memoryId: "a1ed9d9e-44b3-4e7b-bc47-084c65a3e921"
+                duplicated: true
+                message: "Memory already exists with this dedupKey"
+
+        "400":
+          description: Invalid JSON or invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  value:
+                    status: error
+                    message: "Request body must be valid JSON"
+                    code: 400
+                invalid_body:
+                  value:
+                    status: error
+                    message: "Invalid request body"
+                    code: 400
+                    details:
+                      text:
+                        _errors:
+                          - "Required"
+
+        "401":
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "no api key"
+                code: 401
+
+        "403":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid API key"
+                code: 403
+
+        "429":
+          description: Rate limit exceeded (better-auth)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Rate limit exceeded for this API key"
+                code: 429
+
+    get:
+      summary: List user memories
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+
+      responses:
+        "200":
+          description: Paginated list of memories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, memories, page, per]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  memories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Memory"
+                  page:
+                    type: integer
+                  per:
+                    type: integer
+              example:
+                status: success
+                memories:
+                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+                    content: "User likes cold brew coffee"
+                    metadata: {}
+                    createdAt: "2023-11-07T05:31:56Z"
+                    embedded: true
+                page: 1
+                per: 20
+
+        "401":
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "no api key"
+                code: 401
+
+        "403":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid API key"
+                code: 403
+
+        "429":
+          description: Rate limit exceeded (better-auth)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Rate limit exceeded for this API key"
+                code: 429
+
+  /memory/{id}:
+
+    get:
+      summary: Retrieve a memory by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        "200":
+          description: Memory record or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, memory]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  memory:
+                    $ref: "#/components/schemas/Memory"
+                    nullable: true
+                  message:
+                    type: string
+              examples:
+                found:
+                  value:
+                    status: success
+                    memory:
+                      id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+                      content: "User likes cold brew coffee"
+                      metadata: {}
+                      createdAt: "2023-11-07T05:31:56Z"
+                      embedded: true
+                not_found:
+                  value:
+                    status: success
+                    memory: null
+                    message: "Memory does not exist or was already deleted"
+
+        "400":
+          description: Invalid memory ID (not a UUID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid memory ID"
+                code: 400
+
+        "401":
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "no api key"
+                code: 401
+
+        "403":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid API key"
+                code: 403
+
+        "429":
+          description: Rate limit exceeded (better-auth)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Rate limit exceeded for this API key"
+                code: 429
+
+    delete:
+      summary: Delete a memory
+      description: >
+        Deletes the memory record and its vector embedding.
+        Returns deleted=false if memory does not exist (idempotent behavior).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, deleted, memoryId, message]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  deleted:
+                    type: boolean
+                  memoryId:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                deleted:
+                  value:
+                    status: success
+                    deleted: true
+                    memoryId: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+                    message: "Memory deleted successfully"
+                not_found:
+                  value:
+                    status: success
+                    deleted: false
+                    memoryId: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+                    message: "Memory does not exist or was already deleted"
+
+        "400":
+          description: Invalid memory ID (not a UUID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid memory ID"
+                code: 400
+
+        "401":
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "no api key"
+                code: 401
+
+        "403":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid API key"
+                code: 403
+
+        "429":
+          description: Rate limit exceeded (better-auth)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Rate limit exceeded for this API key"
+                code: 429
+
+  /memory/search:
+
+    post:
+      summary: Search user memories
+      description: >
+        Performs semantic search on user memories using vector embeddings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+
+      responses:
+        "200":
+          description: Ranked memory results
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, memories, rawMatches]
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  memories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Memory"
+                  rawMatches:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RawMatch"
+              example:
+                status: success
+                memories:
+                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
+                    content: "User likes cold brew coffee"
+                    metadata: {}
+                    createdAt: "2023-11-07T05:31:56Z"
+                    embedded: true
+                rawMatches:
+                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a::0"
+                    score: 0.92
+
+        "400":
+          description: Invalid JSON or invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_json:
+                  value:
+                    status: error
+                    message: "Request body must be valid JSON"
+                    code: 400
+                invalid_body:
+                  value:
+                    status: error
+                    message: "Invalid request body"
+                    code: 400
+                    details:
+                      text:
+                        _errors:
+                          - "Required"
+
+        "401":
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "no api key"
+                code: 401
+
+        "403":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Invalid API key"
+                code: 403
+
+        "429":
+          description: Rate limit exceeded (better-auth)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: error
+                message: "Rate limit exceeded for this API key"
+                code: 429

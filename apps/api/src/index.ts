@@ -6,6 +6,8 @@ import { verifyApiKey } from "./middlewares/apiAuthMiddleware";
 import memoryRoute from "./routes/memory";
 import searchRoute from "./routes/search";
 import usageRoute from "./routes/usage";
+import fs from "fs";
+import path from "path";
 import { trackUsage } from "./middlewares/trackUsage";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { allowedOrigins } from "./config";
@@ -52,6 +54,16 @@ app.get("/", () => {
 app.get("/api/v1", (c) => {
     return c.json({
         "status": "ok",
+    });
+});
+
+app.get("/openapi.yaml", (c) => {
+    const filePath = path.join(process.cwd(), "openapi.yaml");
+    const spec = fs.readFileSync(filePath, "utf8");
+
+    return c.text(spec, 200, {
+        "Content-Type": "application/yaml",
+        "Cache-Control": "public, max-age=300"
     });
 });
 
