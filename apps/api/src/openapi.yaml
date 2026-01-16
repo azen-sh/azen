@@ -51,12 +51,8 @@ components:
           type: object
           nullable: true
           description: Optional metadata associated with the memory
-          properties:
-            dedupKey:
-              type: string
-              description: Deduplication key if provided during creation
           additionalProperties: true
-          example: { "dedupKey": "my-unique-key" }
+          example: null
         createdAt:
           type: string
           format: date-time
@@ -102,11 +98,6 @@ components:
           minLength: 1
           description: The text content to store as a memory
           example: "I love hiking in the mountains"
-        dedupKey:
-          type: string
-          nullable: true
-          description: Optional deduplication key - if provided and matches an existing memory, returns the existing memory instead of creating a new one
-          example: "my-unique-key"
 
     CreateMemoryResponse:
       type: object
@@ -137,35 +128,6 @@ components:
           enum: [processing]
           description: Embedding status (always 'processing' for new memories)
           example: "processing"
-
-    DuplicateMemoryResponse:
-      type: object
-      description: Response when memory is deduplicated using dedupKey
-      required:
-        - status
-        - memoryId
-        - duplicated
-        - message
-      properties:
-        status:
-          type: string
-          enum: [success]
-          description: Response status indicator
-          example: "success"
-        memoryId:
-          type: string
-          format: uuid
-          description: UUID of the existing memory that matched the dedupKey
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        duplicated:
-          type: boolean
-          enum: [true]
-          description: Indicates this was a duplicate
-          example: true
-        message:
-          type: string
-          description: Explanation that memory already exists
-          example: "Memory already exists with this dedupKey"
 
     ListMemoriesResponse:
       type: object
@@ -320,8 +282,7 @@ paths:
       summary: Create a new memory
       description: |
         Creates a new memory with the provided text content. The content is encrypted 
-        and queued for embedding. If a dedupKey is provided and matches an existing 
-        memory, returns the existing memory instead of creating a duplicate.
+        and queued for embedding.
       operationId: createMemory
       tags:
         - Memory
@@ -336,11 +297,6 @@ paths:
                 summary: Simple memory creation
                 value:
                   text: "I love hiking in the mountains"
-              withDedupKey:
-                summary: With deduplication key
-                value:
-                  text: "I love hiking in the mountains"
-                  dedupKey: "my-unique-key"
       responses:
         "201":
           description: Memory created successfully and queued for embedding
@@ -353,17 +309,6 @@ paths:
                 memoryId: "550e8400-e29b-41d4-a716-446655440000"
                 createdAt: "2024-01-15T10:30:00.000Z"
                 embedding: "processing"
-        "200":
-          description: Memory already exists with this dedupKey (deduplicated)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DuplicateMemoryResponse"
-              example:
-                status: "success"
-                memoryId: "550e8400-e29b-41d4-a716-446655440000"
-                duplicated: true
-                message: "Memory already exists with this dedupKey"
         "400":
           description: Bad request - invalid JSON or validation error
           content:
@@ -478,7 +423,7 @@ paths:
                     embedded: true
                   - id: "550e8400-e29b-41d4-a716-446655440001"
                     content: "I enjoy reading sci-fi novels"
-                    metadata: { "dedupKey": "books-preference" }
+                    metadata: null
                     createdAt: "2024-01-14T15:20:00.000Z"
                     embedded: true
                 page: 1
@@ -588,14 +533,14 @@ paths:
                 message: "Invalid API key"
                 code: 403
         "404":
-          description: Memory not found or already deleted
+          description: Memory not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 status: "not_found"
-                message: "Memory not found or already deleted"
+                message: "Memory not found"
                 code: 404
         "429":
           description: Rate limit exceeded
@@ -678,14 +623,14 @@ paths:
                 message: "Invalid API key"
                 code: 403
         "404":
-          description: Memory not found or already deleted
+          description: Memory not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 status: "not_found"
-                message: "Memory not found or already deleted"
+                message: "Memory not found"
                 code: 404
         "429":
           description: Rate limit exceeded

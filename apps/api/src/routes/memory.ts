@@ -11,7 +11,6 @@ const router = new Hono();
 
 const MemoryInputSchema = z.object({
     text: z.string().min(1),
-    dedupKey: z.string().optional().nullish(),
 });
 
 const MemoryIdSchema = z.uuid();
@@ -35,24 +34,7 @@ router.post("/", async (c) => {
         throw new HTTPException(400, { message: "Invalid request body" });
     };
 
-    const { text, dedupKey } = parsed.data;
-    const normalizedDedupKey = dedupKey ?? undefined;
-    if(normalizedDedupKey) {
-        const [existing] = await db
-        .select()
-        .from(memory)
-        .where(sql`(metadata->>'dedupKey') = ${normalizedDedupKey}`)
-        .limit(1);
-
-        if(existing) {
-            return c.json({ 
-                status: "success", 
-                memoryId: existing.id, 
-                duplicated: true,
-                message: "Memory already exists with this dedupKey"
-            });
-        }
-    };
+    const { text } = parsed.data;
 
     const memId = randomUUID();
     const { ciphertext, iv, tag } = encryptText(text);
@@ -65,7 +47,6 @@ router.post("/", async (c) => {
         encryptedContent: ciphertext,
         iv,
         tag,
-        metadata: normalizedDedupKey ? { "dedupKey": normalizedDedupKey } : null,
     }).returning();
 
     if(!rec) {
