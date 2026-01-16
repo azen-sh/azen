@@ -11,24 +11,27 @@ import path from "path";
 import { trackUsage } from "./middlewares/trackUsage";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { allowedOrigins } from "./config";
+import { errorCodes } from "./lib/errorcodes";
 
 const app = new Hono();
 const PORT  = Number(process.env.PORT || 8080);
 
 app.onError((err, c) => {
     console.error(`API Error on Path ${c.req.path}:`,err, err.message);
-    
     if(err instanceof HTTPException) {
+        const code = err.status;
+        const statusText = errorCodes[code] ?? "internal_server_error";
         return c.json({
-            status: "error",
+            status: statusText,
             message: err.message,
             code: err.status
         }, err.status);
     };
     
     return c.json({ 
-        status: "error", 
-        message: "Internal Server Error: Unhandled exception." 
+        status: "internal_server_error", 
+        message: "Internal Server Error: Unhandled exception.",
+        code: 500, 
     }, 500);
 });
 

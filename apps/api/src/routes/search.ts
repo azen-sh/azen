@@ -29,12 +29,7 @@ router.post("/", async (c) => {
     const parsed = SearchInputSchema.safeParse(body);
     
     if(!parsed.success) {
-        return c.json({
-            status: "error",
-            message: "Invalid request body",
-            code: 400,
-            details: parsed.error.format(),
-        }, 400);
+        throw new HTTPException(400, { message: "Invalid request body" });
     };
 
     const { query, topK = 5 } = parsed.data;

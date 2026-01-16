@@ -1,10 +1,16 @@
 openapi: 3.0.3
 
 info:
-  title: Azen API
+  title: Azen Memory API
   version: 1.0.0
-  description: >
-    Azen Memory API for storing, retrieving, and searching user memories.
+  description: |
+    Azen Memory API enables storing, retrieving, and semantically searching user memories with encryption and vector embeddings.
+  contact:
+    name: Azen API Support
+    url: https://azen.sh
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
 
 servers:
   - url: https://api.azen.sh/api/v1
@@ -19,556 +25,812 @@ components:
       type: apiKey
       in: header
       name: azen-api-key
+      description: API key for authenticating requests
 
   schemas:
-
     Memory:
       type: object
-      required: [id, content, createdAt, embedded]
+      description: A memory object containing encrypted user data with metadata
+      required:
+        - id
+        - content
+        - metadata
+        - createdAt
+        - embedded
       properties:
         id:
           type: string
           format: uuid
+          description: Unique identifier for the memory
+          example: "550e8400-e29b-41d4-a716-446655440000"
         content:
           type: string
+          description: The decrypted text content of the memory
+          example: "I love hiking in the mountains"
         metadata:
           type: object
           nullable: true
+          description: Optional metadata associated with the memory
+          properties:
+            dedupKey:
+              type: string
+              description: Deduplication key if provided during creation
+          additionalProperties: true
+          example: { "dedupKey": "my-unique-key" }
         createdAt:
           type: string
           format: date-time
+          description: ISO 8601 timestamp when the memory was created
+          example: "2024-01-15T10:30:00.000Z"
         embedded:
           type: boolean
-
-    CreateMemoryRequest:
-      type: object
-      required: [text]
-      properties:
-        text:
-          type: string
-          example: User likes cold brew coffee
-        dedupKey:
-          type: string
-          nullable: true
-          example: preference:coffee
-
-    CreateMemoryResponse:
-      type: object
-      required: [status, memoryId, createdAt, embeddingStatus]
-      properties:
-        status:
-          type: string
-          example: success
-        memoryId:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-        embeddingStatus:
-          type: string
-          example: processing
-
-    SearchRequest:
-      type: object
-      required: [query]
-      properties:
-        query:
-          type: string
-          example: What drinks does the user like?
-        topK:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 5
+          description: Indicates whether the memory has been successfully embedded for vector search
+          example: true
 
     RawMatch:
       type: object
-      required: [id, score]
+      description: A search result match with similarity score from vector search
+      required:
+        - id
+        - score
+        - values
       properties:
         id:
           type: string
+          description: Memory identifier (may include chunk identifier separated by ::)
+          example: "550e8400-e29b-41d4-a716-446655440000::0"
         score:
           type: number
+          format: float
+          description: Similarity score between query and memory (higher is better)
+          example: 0.87
+        values:
+          type: array
+          items:
+            type: number
+          description: Vector values (typically empty array in responses)
+          example: []
 
-    ErrorResponse:
+    CreateMemoryRequest:
       type: object
-      required: [status, message, code]
+      description: Request payload for creating a new memory
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: The text content to store as a memory
+          example: "I love hiking in the mountains"
+        dedupKey:
+          type: string
+          nullable: true
+          description: Optional deduplication key - if provided and matches an existing memory, returns the existing memory instead of creating a new one
+          example: "my-unique-key"
+
+    CreateMemoryResponse:
+      type: object
+      description: Response when a new memory is successfully created
+      required:
+        - status
+        - memoryId
+        - createdAt
+        - embedding
       properties:
         status:
           type: string
-          example: error
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        memoryId:
+          type: string
+          format: uuid
+          description: UUID of the newly created memory
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of memory creation
+          example: "2024-01-15T10:30:00.000Z"
+        embedding:
+          type: string
+          enum: [processing]
+          description: Embedding status (always 'processing' for new memories)
+          example: "processing"
+
+    DuplicateMemoryResponse:
+      type: object
+      description: Response when memory is deduplicated using dedupKey
+      required:
+        - status
+        - memoryId
+        - duplicated
+        - message
+      properties:
+        status:
+          type: string
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        memoryId:
+          type: string
+          format: uuid
+          description: UUID of the existing memory that matched the dedupKey
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        duplicated:
+          type: boolean
+          enum: [true]
+          description: Indicates this was a duplicate
+          example: true
         message:
           type: string
-          example: Error message
+          description: Explanation that memory already exists
+          example: "Memory already exists with this dedupKey"
+
+    ListMemoriesResponse:
+      type: object
+      description: Paginated list of user memories
+      required:
+        - status
+        - memories
+        - page
+        - per
+      properties:
+        status:
+          type: string
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        memories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Memory"
+          description: Array of memory objects for the current page
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+        per:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Number of memories per page
+          example: 20
+
+    GetMemoryResponse:
+      type: object
+      description: Response when retrieving a specific memory
+      required:
+        - status
+        - memory
+      properties:
+        status:
+          type: string
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        memory:
+          $ref: "#/components/schemas/Memory"
+          description: The memory object
+
+    DeleteMemoryResponse:
+      type: object
+      description: Response when memory is successfully deleted
+      required:
+        - status
+        - deleted
+        - memoryId
+        - message
+      properties:
+        status:
+          type: string
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        deleted:
+          type: boolean
+          enum: [true]
+          description: Indicates successful deletion
+          example: true
+        memoryId:
+          type: string
+          format: uuid
+          description: UUID of the deleted memory
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          type: string
+          description: Confirmation message
+          example: "Memory deleted successfully"
+
+    SearchRequest:
+      type: object
+      description: Request payload for semantic memory search
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          description: The search query text to find similar memories
+          example: "outdoor activities"
+        topK:
+          type: number
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Maximum number of top results to return
+          example: 5
+
+    SearchResponse:
+      type: object
+      description: Search results with matched memories and similarity scores
+      required:
+        - status
+        - memories
+        - rawMatches
+      properties:
+        status:
+          type: string
+          enum: [success]
+          description: Response status indicator
+          example: "success"
+        memories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Memory"
+          description: Array of matching memory objects ordered by relevance
+        rawMatches:
+          type: array
+          items:
+            $ref: "#/components/schemas/RawMatch"
+          description: Raw similarity scores and IDs from vector search
+
+    ErrorResponse:
+      type: object
+      description: Standard error response format
+      required:
+        - status
+        - message
+        - code
+      properties:
+        status:
+          type: string
+          enum:
+            - invalid_request
+            - unauthorized
+            - forbidden
+            - not_found
+            - rate_limited
+            - internal_server_error
+          description: Error status code
+          example: "invalid_request"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid request body"
         code:
           type: integer
+          description: HTTP status code
           example: 400
-        details:
-          type: object
-          nullable: true
 
 paths:
-
   /memory:
-
     post:
       summary: Create a new memory
-      description: >
-        Stores a memory for the authenticated user and queues it for embedding.
-        If a `dedupKey` is provided and matches an existing memory,
-        the existing one is returned instead.
+      description: |
+        Creates a new memory with the provided text content. The content is encrypted 
+        and queued for embedding. If a dedupKey is provided and matches an existing 
+        memory, returns the existing memory instead of creating a duplicate.
+      operationId: createMemory
+      tags:
+        - Memory
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateMemoryRequest"
-
+            examples:
+              simple:
+                summary: Simple memory creation
+                value:
+                  text: "I love hiking in the mountains"
+              withDedupKey:
+                summary: With deduplication key
+                value:
+                  text: "I love hiking in the mountains"
+                  dedupKey: "my-unique-key"
       responses:
         "201":
-          description: Memory accepted and queued
+          description: Memory created successfully and queued for embedding
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreateMemoryResponse"
               example:
-                status: success
-                memoryId: "a1ed9d9e-44b3-4e7b-bc47-084c65a3e921"
-                createdAt: "2025-01-01T12:10:33.000Z"
-                embeddingStatus: processing
-
+                status: "success"
+                memoryId: "550e8400-e29b-41d4-a716-446655440000"
+                createdAt: "2024-01-15T10:30:00.000Z"
+                embedding: "processing"
         "200":
-          description: Memory already exists (deduplication)
+          description: Memory already exists with this dedupKey (deduplicated)
           content:
             application/json:
               schema:
-                type: object
-                required: [status, memoryId, duplicated, message]
-                properties:
-                  status:
-                    type: string
-                  memoryId:
-                    type: string
-                    format: uuid
-                  duplicated:
-                    type: boolean
-                  message:
-                    type: string
+                $ref: "#/components/schemas/DuplicateMemoryResponse"
               example:
-                status: success
-                memoryId: "a1ed9d9e-44b3-4e7b-bc47-084c65a3e921"
+                status: "success"
+                memoryId: "550e8400-e29b-41d4-a716-446655440000"
                 duplicated: true
                 message: "Memory already exists with this dedupKey"
-
         "400":
-          description: Invalid JSON or invalid request body
+          description: Bad request - invalid JSON or validation error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
-                invalid_json:
+                invalidJson:
+                  summary: Invalid JSON
                   value:
-                    status: error
+                    status: "invalid_request"
                     message: "Request body must be valid JSON"
                     code: 400
-                invalid_body:
+                validationError:
+                  summary: Validation error
                   value:
-                    status: error
+                    status: "invalid_request"
                     message: "Invalid request body"
                     code: 400
-                    details:
-                      text:
-                        _errors:
-                          - "Required"
-
         "401":
-          description: Missing API key
+          description: Unauthorized - missing or invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "no api key"
+                status: "unauthorized"
+                message: "Not authenticated"
                 code: 401
-
         "403":
-          description: Invalid API key
+          description: Forbidden - invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "forbidden"
                 message: "Invalid API key"
                 code: 403
-
         "429":
-          description: Rate limit exceeded (better-auth)
+          description: Rate limit exceeded
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "rate_limited"
                 message: "Rate limit exceeded for this API key"
                 code: 429
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                memoryCreationFailed:
+                  summary: Failed to create memory
+                  value:
+                    status: "internal_server_error"
+                    message: "Failed to create memory record"
+                    code: 500
+                jobCreationFailed:
+                  summary: Failed to create embedding job
+                  value:
+                    status: "internal_server_error"
+                    message: "Failed to create embedding job record"
+                    code: 500
 
     get:
       summary: List user memories
+      description: |
+        Retrieves a paginated list of all memories for the authenticated user, 
+        ordered by creation date (newest first). Supports pagination via query parameters.
+      operationId: listMemories
+      tags:
+        - Memory
       parameters:
         - name: page
           in: query
+          required: false
+          description: Page number for pagination (starts at 1)
           schema:
             type: integer
+            minimum: 1
             default: 1
+          example: 1
         - name: per
           in: query
+          required: false
+          description: Number of memories per page (max 100)
           schema:
             type: integer
-            default: 20
+            minimum: 1
             maximum: 100
-
+            default: 20
+          example: 20
       responses:
         "200":
-          description: Paginated list of memories
+          description: Successfully retrieved paginated memories
           content:
             application/json:
               schema:
-                type: object
-                required: [status, memories, page, per]
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  memories:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Memory"
-                  page:
-                    type: integer
-                  per:
-                    type: integer
+                $ref: "#/components/schemas/ListMemoriesResponse"
               example:
-                status: success
+                status: "success"
                 memories:
-                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-                    content: "User likes cold brew coffee"
-                    metadata: {}
-                    createdAt: "2023-11-07T05:31:56Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440000"
+                    content: "I love hiking in the mountains"
+                    metadata: null
+                    createdAt: "2024-01-15T10:30:00.000Z"
+                    embedded: true
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    content: "I enjoy reading sci-fi novels"
+                    metadata: { "dedupKey": "books-preference" }
+                    createdAt: "2024-01-14T15:20:00.000Z"
                     embedded: true
                 page: 1
                 per: 20
-
         "401":
-          description: Missing API key
+          description: Unauthorized - missing or invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "no api key"
+                status: "unauthorized"
+                message: "Not authenticated"
                 code: 401
-
         "403":
-          description: Invalid API key
+          description: Forbidden - invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "forbidden"
                 message: "Invalid API key"
                 code: 403
-
         "429":
-          description: Rate limit exceeded (better-auth)
+          description: Rate limit exceeded
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "rate_limited"
                 message: "Rate limit exceeded for this API key"
                 code: 429
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: "internal_server_error"
+                message: "Internal Server Error: Unhandled exception."
+                code: 500
 
   /memory/{id}:
-
     get:
       summary: Retrieve a memory by ID
+      description: |
+        Fetches a specific memory using its unique UUID. Returns 404 if the memory 
+        doesn't exist or doesn't belong to the authenticated user.
+      operationId: getMemory
+      tags:
+        - Memory
       parameters:
         - name: id
           in: path
           required: true
+          description: UUID of the memory to retrieve
           schema:
             type: string
             format: uuid
-
+          example: "550e8400-e29b-41d4-a716-446655440000"
       responses:
         "200":
-          description: Memory record or null
+          description: Memory retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                required: [status, memory]
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  memory:
-                    $ref: "#/components/schemas/Memory"
-                    nullable: true
-                  message:
-                    type: string
-              examples:
-                found:
-                  value:
-                    status: success
-                    memory:
-                      id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-                      content: "User likes cold brew coffee"
-                      metadata: {}
-                      createdAt: "2023-11-07T05:31:56Z"
-                      embedded: true
-                not_found:
-                  value:
-                    status: success
-                    memory: null
-                    message: "Memory does not exist or was already deleted"
-
+                $ref: "#/components/schemas/GetMemoryResponse"
+              example:
+                status: "success"
+                memory:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  content: "I love hiking in the mountains"
+                  metadata: null
+                  createdAt: "2024-01-15T10:30:00.000Z"
+                  embedded: true
         "400":
-          description: Invalid memory ID (not a UUID)
+          description: Bad request - invalid UUID format
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "Invalid memory ID"
+                status: "invalid_request"
+                message: "Invalid memory Id"
                 code: 400
-
         "401":
-          description: Missing API key
+          description: Unauthorized - missing or invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "no api key"
+                status: "unauthorized"
+                message: "Not authenticated"
                 code: 401
-
         "403":
-          description: Invalid API key
+          description: Forbidden - invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "forbidden"
                 message: "Invalid API key"
                 code: 403
-
-        "429":
-          description: Rate limit exceeded (better-auth)
+        "404":
+          description: Memory not found or already deleted
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "not_found"
+                message: "Memory not found or already deleted"
+                code: 404
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: "rate_limited"
                 message: "Rate limit exceeded for this API key"
                 code: 429
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: "internal_server_error"
+                message: "Internal Server Error: Unhandled exception."
+                code: 500
 
     delete:
       summary: Delete a memory
-      description: >
-        Deletes the memory record and its vector embedding.
-        Returns deleted=false if memory does not exist (idempotent behavior).
+      description: |
+        Permanently deletes a memory and its associated vector embeddings. 
+        Returns 404 if the memory doesn't exist.
+      operationId: deleteMemory
+      tags:
+        - Memory
       parameters:
         - name: id
           in: path
           required: true
+          description: UUID of the memory to delete
           schema:
             type: string
             format: uuid
-
+          example: "550e8400-e29b-41d4-a716-446655440000"
       responses:
         "200":
-          description: Deletion result
+          description: Memory deleted successfully
           content:
             application/json:
               schema:
-                type: object
-                required: [status, deleted, memoryId, message]
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  deleted:
-                    type: boolean
-                  memoryId:
-                    type: string
-                  message:
-                    type: string
-              examples:
-                deleted:
-                  value:
-                    status: success
-                    deleted: true
-                    memoryId: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-                    message: "Memory deleted successfully"
-                not_found:
-                  value:
-                    status: success
-                    deleted: false
-                    memoryId: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-                    message: "Memory does not exist or was already deleted"
-
+                $ref: "#/components/schemas/DeleteMemoryResponse"
+              example:
+                status: "success"
+                deleted: true
+                memoryId: "550e8400-e29b-41d4-a716-446655440000"
+                message: "Memory deleted successfully"
         "400":
-          description: Invalid memory ID (not a UUID)
+          description: Bad request - invalid UUID format
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "Invalid memory ID"
+                status: "invalid_request"
+                message: "Invalid memory Id"
                 code: 400
-
         "401":
-          description: Missing API key
+          description: Unauthorized - missing or invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "no api key"
+                status: "unauthorized"
+                message: "Not authenticated"
                 code: 401
-
         "403":
-          description: Invalid API key
+          description: Forbidden - invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "forbidden"
                 message: "Invalid API key"
                 code: 403
-
-        "429":
-          description: Rate limit exceeded (better-auth)
+        "404":
+          description: Memory not found or already deleted
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "not_found"
+                message: "Memory not found or already deleted"
+                code: 404
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: "rate_limited"
                 message: "Rate limit exceeded for this API key"
                 code: 429
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                vectorDeletionFailed:
+                  summary: Failed to delete vectors
+                  value:
+                    status: "internal_server_error"
+                    message: "Failed to delete vectors for memory"
+                    code: 500
+                recordDeletionFailed:
+                  summary: Failed to delete record
+                  value:
+                    status: "internal_server_error"
+                    message: "Failed to delete memory record"
+                    code: 500
 
   /memory/search:
-
     post:
       summary: Search user memories
-      description: >
-        Performs semantic search on user memories using vector embeddings.
+      description: |
+        Performs semantic vector search across all user memories using the provided 
+        query text. Returns the most similar memories ranked by similarity score.
+      operationId: searchMemories
+      tags:
+        - Search
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/SearchRequest"
-
+            examples:
+              simple:
+                summary: Simple search
+                value:
+                  query: "outdoor activities"
+              withTopK:
+                summary: Search with custom topK
+                value:
+                  query: "outdoor activities"
+                  topK: 10
       responses:
         "200":
-          description: Ranked memory results
+          description: Search completed successfully
           content:
             application/json:
               schema:
-                type: object
-                required: [status, memories, rawMatches]
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  memories:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Memory"
-                  rawMatches:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/RawMatch"
+                $ref: "#/components/schemas/SearchResponse"
               example:
-                status: success
+                status: "success"
                 memories:
-                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a"
-                    content: "User likes cold brew coffee"
-                    metadata: {}
-                    createdAt: "2023-11-07T05:31:56Z"
+                  - id: "550e8400-e29b-41d4-a716-446655440000"
+                    content: "I love hiking in the mountains"
+                    metadata: null
+                    createdAt: "2024-01-15T10:30:00.000Z"
+                    embedded: true
+                  - id: "550e8400-e29b-41d4-a716-446655440001"
+                    content: "Rock climbing is my favorite weekend activity"
+                    metadata: null
+                    createdAt: "2024-01-14T15:20:00.000Z"
                     embedded: true
                 rawMatches:
-                  - id: "3c90c3cc-0d44-4b50-8888-8dd25736052a::0"
-                    score: 0.92
-
+                  - id: "550e8400-e29b-41d4-a716-446655440000::0"
+                    score: 1.00110459
+                    values: []
+                  - id: "550e8400-e29b-41d4-a716-446655440001::0"
+                    score: 0.82
+                    values: []
         "400":
-          description: Invalid JSON or invalid request body
+          description: Bad request - invalid JSON or validation error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               examples:
-                invalid_json:
+                invalidJson:
+                  summary: Invalid JSON
                   value:
-                    status: error
+                    status: "invalid_request"
                     message: "Request body must be valid JSON"
                     code: 400
-                invalid_body:
+                validationError:
+                  summary: Validation error
                   value:
-                    status: error
+                    status: "invalid_request"
                     message: "Invalid request body"
                     code: 400
-                    details:
-                      text:
-                        _errors:
-                          - "Required"
-
         "401":
-          description: Missing API key
+          description: Unauthorized - missing or invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
-                message: "no api key"
+                status: "unauthorized"
+                message: "Not authenticated"
                 code: 401
-
         "403":
-          description: Invalid API key
+          description: Forbidden - invalid API key
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "forbidden"
                 message: "Invalid API key"
                 code: 403
-
         "429":
-          description: Rate limit exceeded (better-auth)
+          description: Rate limit exceeded
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                status: error
+                status: "rate_limited"
                 message: "Rate limit exceeded for this API key"
                 code: 429
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: "internal_server_error"
+                message: "Failed to embed query"
+                code: 500
+
+tags:
+  - name: Memory
+    description: Operations for managing user memories
+  - name: Search
+    description: Semantic search operations

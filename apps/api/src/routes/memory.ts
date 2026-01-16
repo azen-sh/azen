@@ -32,12 +32,7 @@ router.post("/", async (c) => {
     const parsed = MemoryInputSchema.safeParse(body);
 
     if(!parsed.success) {
-        return c.json({
-            status: "error",
-            message: "Invalid request body",
-            code: 400,
-            details: parsed.error.format(),
-        }, 400);
+        throw new HTTPException(400, { message: "Invalid request body" });
     };
 
     const { text, dedupKey } = parsed.data;
@@ -70,7 +65,7 @@ router.post("/", async (c) => {
         encryptedContent: ciphertext,
         iv,
         tag,
-        metadata: normalizedDedupKey ? { normalizedDedupKey } : null,
+        metadata: normalizedDedupKey ? { "dedupKey": normalizedDedupKey } : null,
     }).returning();
 
     if(!rec) {
@@ -163,11 +158,7 @@ router.get('/:id', async(c) => {
     const parsedId = MemoryIdSchema.safeParse(memoryId);
 
     if(!parsedId.success) {
-        return c.json({
-            status: "error",
-            message: "Invalid memory Id",
-            code: 400,
-        }, 400);
+        throw new HTTPException(400, { message: "Invalid memory Id" });
     };
 
     const [rec] = await db
@@ -182,11 +173,7 @@ router.get('/:id', async(c) => {
     .limit(1);
 
     if(!rec) {
-        return c.json({
-            status: 'success',
-            memory: null,
-            message: 'Memory does not exist or was already deleted'
-        }, 200);
+        throw new HTTPException(404, { message: "Memory not found or already deleted" });
     }; 
 
     const content = decryptText(rec.encryptedContent, rec.iv, rec.tag);
@@ -197,7 +184,7 @@ router.get('/:id', async(c) => {
             id: rec.id,
             content,
             metadata: rec.metadata,
-            creadetAt: rec.createdAt,
+            createdAt: rec.createdAt,
             embedded: rec.embedded,
         },
     }, 200);
@@ -211,11 +198,7 @@ router.delete("/:id", async(c) => {
     const parsedId = MemoryIdSchema.safeParse(memoryId);
     
     if(!parsedId.success) {
-        return c.json({
-            status: "error",
-            message: "Invalid memory Id",
-            code: 400
-        }, 400);
+        throw new HTTPException(400, { message: "Invalid memory Id" });
     };
 
     const [rec] = await db
@@ -229,13 +212,7 @@ router.delete("/:id", async(c) => {
     )
     .limit(1);
     if (!rec) {
-        return c.json({
-            status: "success",
-            deleted: false,
-            memoryId: memoryId,
-            reason: 'memory_not_found',
-            message: 'Memory does not exist or was already deleted'
-        }, 200);
+        throw new HTTPException(404, { message: "Memory not found or already deleted" });
     };
 
     const namespace = `user-${rec.userId}`;
