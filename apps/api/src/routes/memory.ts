@@ -1,7 +1,7 @@
 import { Hono} from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { db, schema, and, sql, eq, desc } from "db";
+import { db, schema, and, count, eq, desc } from "db";
 import { randomUUID } from "crypto";
 import { embeddingsQueue } from "../queue/embedding-queue";
 import { deleteMemoryVectors } from "../lib/vector";
@@ -24,12 +24,13 @@ router.post("/", async (c) => {
     let body;
     try {
         body = await c.req.json();
+        console.log(body);
     } catch (e) {
         throw new HTTPException(400, { message: "Request body must be valid JSON" });
     };
 
     const parsed = MemoryInputSchema.safeParse(body);
-
+    console.log(parsed);
     if(!parsed.success) {
         throw new HTTPException(400, { message: "Invalid request body" });
     };
@@ -99,6 +100,14 @@ router.get("/", async (c) => {
 
     const offset = (page - 1) * per;
 
+    const countResult = await db
+        .select({ total: count() })
+        .from(memory)
+        .where(eq(memory.userId, userId));
+        
+    const totalCount = Number(countResult[0]?.total ?? 0);
+    const totalPages = Math.ceil(totalCount / per);
+
     const items = await db
     .select({
         id: memory.id,
@@ -127,8 +136,10 @@ router.get("/", async (c) => {
         status: "success",
         memories, 
         page, 
-        per 
-    });
+        per,
+        total_pages: totalPages,
+        total_count: totalCount,
+    }, 200);
 });
 
 router.get('/:id', async(c) => {

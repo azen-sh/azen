@@ -137,6 +137,8 @@ components:
         - memories
         - page
         - per
+        - total_pages
+        - total_count
       properties:
         status:
           type: string
@@ -159,6 +161,16 @@ components:
           maximum: 100
           description: Number of memories per page
           example: 20
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages available
+          example: 5
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total count of memory objects
+          example: 100
 
     GetMemoryResponse:
       type: object
@@ -428,6 +440,8 @@ paths:
                     embedded: true
                 page: 1
                 per: 20
+                total_pages: 5
+                total_count: 100
         "401":
           description: Unauthorized - missing or invalid API key
           content:
