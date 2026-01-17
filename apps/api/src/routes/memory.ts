@@ -24,13 +24,11 @@ router.post("/", async (c) => {
     let body;
     try {
         body = await c.req.json();
-        console.log(body);
     } catch (e) {
         throw new HTTPException(400, { message: "Request body must be valid JSON" });
     };
 
     const parsed = MemoryInputSchema.safeParse(body);
-    console.log(parsed);
     if(!parsed.success) {
         throw new HTTPException(400, { message: "Invalid request body" });
     };
@@ -104,7 +102,7 @@ router.get("/", async (c) => {
         .select({ total: count() })
         .from(memory)
         .where(eq(memory.userId, userId));
-        
+
     const totalCount = Number(countResult[0]?.total ?? 0);
     const totalPages = Math.ceil(totalCount / per);
 
