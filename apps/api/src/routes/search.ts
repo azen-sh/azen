@@ -81,7 +81,7 @@ router.post("/", async (c) => {
         status: "success",
         memories: orderedMems, 
         rawMatches: matches 
-    });
+    }, 200);
 });
 
 export default router;
