@@ -1,6 +1,11 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from "react"
+import Image from "next/image"
+import { Copy, Check } from "lucide-react"
+import Prism from "prismjs"
+import "prismjs/components/prism-typescript"
+import "prismjs/themes/prism-tomorrow.css"
 
 type MediaItem = {
   type: "code"
@@ -39,63 +44,48 @@ export default function ApiShowcase({
       step: 1,
       type: "code",
       caption: "Create memory (TypeScript)",
-      code: `const response = await fetch("https://api.azen.sh/api/v1/memory", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "azen-api-key": process.env.AZEN_API_KEY!,
-  },
-  body: JSON.stringify({
-    text: "User likes cold brew coffee",
-    dedupKey: "preference:coffee",
-  }),
-})
+      code: `import Azen from '@azen-sh/sdk';
 
-const data = await response.json()
-console.log(data)`,
+const client = new Azen({ apiKey: 'AZEN_API_KEY' });
+
+const response = await client.memory.create({
+  text: 'I love hiking in the mountains',
+});`,
     },
     {
       step: 2,
       type: "code",
       caption: "Search memory (TypeScript)",
-      code: `const response = await fetch("https://api.azen.sh/api/v1/memory/search", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "azen-api-key": process.env.AZEN_API_KEY!,
-  },
-  body: JSON.stringify({
-    query: "What drinks does the user like?",
-    topK: 5,
-  }),
-})
+      code: `import Azen from '@azen-sh/sdk';
 
-const results = await response.json()
-console.log(results)`,
+const client = new Azen({
+  apiKey: process.env['AZEN_API_KEY'],
+});
+
+const response = await client.memory.search({ query: 'outdoor activities', topK: 5 });
+
+console.log(response.memories);`,
     },
     {
       step: 3,
       type: "code",
       caption: "List memories (TypeScript)",
-      code: `const response = await fetch(
-  "https://api.azen.sh/api/v1/memory?page=1&per=20",
-  {
-    method: "GET",
-    headers: {
-      "azen-api-key": process.env.AZEN_API_KEY!,
-    },
-  }
-)
+      code: `import Azen from '@azen-sh/sdk';
 
-const memories = await response.json()
-console.log(memories)`,
+const client = new Azen({
+  apiKey: process.env['AZEN_API_KEY'],
+});
+
+for await (const memory of client.memory.list()) {
+  console.log(memory.id);
+}`,
     },
   ]
 
   const mergedMedia = media.length ? media : tsSnippets
-
   const [active, setActive] = useState<number>(initial)
   const [index, setIndex] = useState<number>(0)
+  const [copied, setCopied] = useState(false)
 
   const mediaByStep = useMemo(() => {
     const map = new Map<number, MediaItem[]>()
@@ -109,7 +99,7 @@ console.log(memories)`,
   }, [mergedMedia])
 
   const candidates = useMemo(() => {
-    return mediaByStep.get(active) ?? mediaByStep.get(0) ?? mergedMedia
+    return mediaByStep.get(active) ?? mergedMedia
   }, [active, mediaByStep, mergedMedia])
 
   useEffect(() => {
@@ -118,12 +108,31 @@ console.log(memories)`,
 
   const current = candidates?.[index]
 
+  const highlighted = useMemo(() => {
+    if (!current?.code) return ""
+    
+    const grammar = Prism.languages.typescript as Prism.Grammar
+    
+    if (!grammar) return current.code
+
+    return Prism.highlight(
+      current.code,
+      grammar,
+      "typescript"
+    )
+  }, [current?.code])
+
+  const handleCopy = async () => {
+    if (!current?.code) return
+    await navigator.clipboard.writeText(current.code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1200)
+  }
+
   return (
     <section className="bg-black text-white py-24 px-6">
       <div className="max-w-7xl mx-auto">
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
-
           <div>
             <span className="inline-block mb-4 px-3 py-1 rounded-full text-xs bg-white/10 text-[#E6E6E6]">
               How it Works
@@ -148,19 +157,19 @@ console.log(memories)`,
                     onClick={() => setActive(idx)}
                     className={`w-full text-left flex items-start gap-5 p-5 rounded-xl transition border ${
                       isActive
-                        ? "bg-[#0f1113] border-neutral-900"
+                        ? "bg-[#0f1113] border-neutral-900 shadow-lg"
                         : "border-transparent opacity-60 hover:opacity-90"
                     }`}
                   >
-                    <div className={`w-9 text-xs ${isActive ? "text-white" : "text-slate-300"}`}>
-                      {idx}
+                    <div className={`w-9 text-xs mt-1 ${isActive ? "text-white" : "text-slate-500"}`}>
+                      0{idx}
                     </div>
 
                     <div>
-                      <div className={`${isActive ? "text-white" : "text-slate-300"}`}>
+                      <div className={`font-medium ${isActive ? "text-white" : "text-slate-300"}`}>
                         {s.title}
                       </div>
-                      <div className="text-sm text-gray-400 mt-1 max-w-sm">
+                      <div className="text-sm text-gray-400 mt-1 max-w-sm leading-relaxed">
                         {s.desc}
                       </div>
                     </div>
@@ -171,25 +180,50 @@ console.log(memories)`,
           </div>
 
           <div>
-            <div className="relative rounded-3xl bg-[#0f1113] border border-neutral-900 shadow-xl overflow-hidden">
+            <div className="relative rounded-3xl bg-[#0f1113] border border-neutral-900 shadow-2xl overflow-hidden">
+              <div className="relative w-full h-[520px] md:h-[620px]">
+                <Image
+                  src="/snippetbg2.png"
+                  alt="Code background"
+                  fill
+                  priority
+                  className="object-cover opacity-40"
+                />
 
-              <div className="relative w-full h-[520px] md:h-[620px] bg-[radial-gradient(ellipse_at_bottom,#1a1f2b_0%,#0f1113_45%,#08090a_100%)]">
+                <div className="absolute inset-0 flex items-center justify-center p-6 md:p-10">
+                  <div className="relative w-full max-w-[440px] bg-[#0b0d0f]/95 backdrop-blur-xl border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
+                    
+                    <div className="flex justify-between items-center px-5 py-3 border-b border-neutral-800/50 bg-white/5">
+                      <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
+                        {current?.language || 'typescript'}
+                      </span>
+                      <button
+                        onClick={handleCopy}
+                        className="p-1.5 rounded-md hover:bg-white/10 transition-colors"
+                        aria-label="Copy code"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-slate-400" />
+                        )}
+                      </button>
+                    </div>
 
-                <div className="absolute inset-0 flex items-center justify-center p-6">
-                  <pre className="bg-black/90 rounded-xl p-6 text-sm font-mono leading-relaxed max-h-[85%] overflow-auto text-[#E6E6E6]">
-                    {current?.code}
-                  </pre>
+                    <pre className="p-6 text-xs md:text-sm font-mono leading-relaxed overflow-auto text-[#E6E6E6] custom-scrollbar">
+                      <code dangerouslySetInnerHTML={{ __html: highlighted }} />
+                    </pre>
+                  </div>
                 </div>
 
                 {showCaption && current?.caption && (
-                  <div className="absolute left-5 bottom-5 bg-black/80 text-slate-300 text-sm px-3 py-2 rounded-md">
+                  <div className="absolute left-10 bottom-10 bg-black/60 backdrop-blur-md border border-white/10 text-slate-300 text-xs px-3 py-2 rounded-lg">
                     {current.caption}
                   </div>
                 )}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
