@@ -18,7 +18,7 @@ export default function Footer() {
                 className="object-contain"
               />
             </div>
-            <h3 className="text-lg font-semibold text-white tracking-tight">
+            <h3 className="font-semibold font-inter bg-linear-to-b from-[#F2F2F2] via-[#CFCFCF] to-[#9A9A9A] bg-clip-text text-transparent">
               Azen
             </h3>
             <p className="text-sm text-gray-400 font-light leading-relaxed">
@@ -54,7 +54,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-neutral-900 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm font-light">
-            © 2025 Azen. All rights reserved.
+            © {new Date().getFullYear()} Azen. All rights reserved.
           </p>
 
           <div className="flex gap-4">

@@ -30,7 +30,7 @@ export default function Navigation() {
               />
             </div>
 
-            <span className="text-white font-semibold tracking-wide">
+            <span className="font-semibold font-inter bg-linear-to-b from-[#F2F2F2] via-[#CFCFCF] to-[#9A9A9A] bg-clip-text text-transparent">
               Azen
             </span>
           </div>

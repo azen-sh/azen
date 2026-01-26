@@ -96,7 +96,7 @@ export default function MagicLinkLogin({ url, email }: MagicLinkLoginProps) {
                       </table>
 
                       <p className="text-xs text-neutral-500">
-                        © 2025 Azen. All rights reserved.
+                        © {new Date().getFullYear()} Azen. All rights reserved.
                       </p>
 
                     </td>
