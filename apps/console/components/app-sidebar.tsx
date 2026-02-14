@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner";
 import Image from "next/image"
-
 import { CreateOrgModal } from "./CreateOrgModal"
 import { signOut, useListOrganizations, useSession, authClient } from "@/app/lib/auth-client"
 
