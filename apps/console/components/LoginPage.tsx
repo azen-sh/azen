@@ -21,6 +21,7 @@ export default function LoginPage() {
     await signIn.social({
       provider: "google",
       callbackURL: "/dashboard",
+      newUserCallbackURL: "/welcome",
     });
   }
 
@@ -28,6 +29,7 @@ export default function LoginPage() {
     await signIn.social({
       provider: "github",
       callbackURL: "/dashboard",
+      newUserCallbackURL: "/welcome",
     });
   }
 
@@ -48,6 +50,7 @@ export default function LoginPage() {
         email,
         name: email.split("@")[0],
         callbackURL: "/dashboard",
+        newUserCallbackURL: "/welcome",
         errorCallbackURL: "/login?error=login_link_error"
       });
   

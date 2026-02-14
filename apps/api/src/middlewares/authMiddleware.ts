@@ -8,7 +8,14 @@ export const authMiddleware = createMiddleware(async (c, next) => {
         return c.json({ error: 'Unauthorized' }, 401);
     };
 
-    const userId = session?.user.id;
+    const userId = session.user.id;
+    const organizationId = session.session.activeOrganizationId;
+
+    if (!organizationId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    };
+
     c.set("userId", userId);
+    c.set("organizationId", organizationId);
     await next();
 });

@@ -43,7 +43,6 @@ export default function App() {
       setUsage(data);
       setLoading(false);
     } catch (err) {
-      console.error("fetch usage failed", err);
       toast.error("Failed to load usage metrics");
       setLoading(false);
     }
@@ -62,15 +61,15 @@ export default function App() {
     })) ?? [];
 
   return (
-    <div className="w-full min-h-screen px-3 py-4 bg-[#070708] overflow-hidden">
+    <div className="w-full min-h-screen px-3 py- bg-black overflow-hidden">
       <div className="max-w-full">
-        <div className="mb-2 mt-3">
+      <div className="mb-2 mt-3">
           <h1 className="text-xl text-white">Overview</h1>
           <p className="mt-1 text-sm text-neutral-400">
             Manage your account, API keys and usage
           </p>
         </div>
-
+        
         <div
           className="flex h-[calc(100vh-110px)] flex-col rounded-xl border border-neutral-800 bg-[#0C0C0C] p-6 mt-5 -ml-3 -mr-3 mx-[-2px] panel-scroll overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}

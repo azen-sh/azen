@@ -9,7 +9,9 @@ function isoDateString(d: Date) {
 
 router.get("/", async (c) => {
   const userId = c.get("userId");
-  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+  const organizationId = c.get("organizationId");
+
+  if (!userId || !organizationId) return c.json({ error: "Unauthorized" }, 401);
 
   const endDate = new Date();
   const end = isoDateString(endDate);
@@ -27,7 +29,7 @@ router.get("/", async (c) => {
       SUM(memory_count) AS memory_count,
       SUM(search_count) AS search_count
     FROM api_usage
-    WHERE user_id = ${userId}
+    WHERE organization_id = ${organizationId}
       AND date BETWEEN ${start} AND ${end}
     GROUP BY date, route_group
     ORDER BY date ASC;

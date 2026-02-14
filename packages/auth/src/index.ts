@@ -1,7 +1,9 @@
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { apiKey } from "better-auth/plugins";
-import { db, schema } from "db";
-import type { CookieOptions } from "better-auth";
+import { apiKey, organization } from "better-auth/plugins";
+import { asc, db, eq, schema } from "db";
+import type { BetterAuthOptions, CookieOptions } from "better-auth";
+
+const { member } = schema;
 
 export const authConfig = {
     database: drizzleAdapter(db, {
@@ -10,7 +12,40 @@ export const authConfig = {
           ...schema,
         },
       }),
+      databaseHooks: {
+        session: {
+          create: {
+            before: async (session) => {
+              const [membership] = await db
+                .select({ organizationId: member.organizationId })
+                .from(member)
+                .where(eq(member.userId, session.userId))
+                .orderBy(asc(member.createdAt))
+                .limit(1);
+
+              if (!membership) {
+                return { data: session };
+              };
+
+              return {
+                data: {
+                  ...session,
+                  activeOrganizationId: membership.organizationId,
+                },
+              };
+            },
+          },
+        },
+      },
       secret: process.env.BETTER_AUTH_SECRET!,
+      user: {
+        additionalFields: {
+          hasCompletedOnboarding: {
+            type: "boolean",
+            defaultValue: false,
+          },
+        },
+      },
       advanced: {
         cookies: {
             session_token: {
@@ -44,5 +79,18 @@ export const authConfig = {
             },
           },
         }),
+        organization({
+          schema: {
+            organization: {
+              additionalFields: {
+                description: {
+                  type: "string",
+                  input: true,
+                  required: false,
+                },
+              },
+            },
+          },
+        }),
     ],
-} 
+} satisfies BetterAuthOptions;

@@ -8,10 +8,11 @@ const KEYS_SET = `${KEY_PREFIX}:keys`;
 export const trackUsage = createMiddleware(async (c, next) => {
   const userId = c.get("userId");
   const apiKeyId = c.get("apiKeyId");
+  const organizationId = c.get("organizationId");
 
-  if (!userId || !apiKeyId) {
+  if (!userId || !apiKeyId || !organizationId) {
     return await next();
-  }
+  };
 
   const method = c.req.method;
   const path = c.req.path;
@@ -41,7 +42,7 @@ export const trackUsage = createMiddleware(async (c, next) => {
   } finally {
     try {
       const date = new Date().toISOString().slice(0, 10);
-      const key = `${KEY_PREFIX}:${userId}:${apiKeyId}:${date}:${routeGroup}`;
+      const key = `${KEY_PREFIX}:${organizationId}:${userId}:${apiKeyId}:${date}:${routeGroup}`;
 
       const pipeline = redis.pipeline();
       pipeline.hincrby(key, "totalRequests", 1);

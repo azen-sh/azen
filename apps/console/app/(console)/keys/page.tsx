@@ -47,8 +47,13 @@ export default function ApiKeysPage() {
   async function loadKeys() {
     try {
       setListLoading(true);
-      const res = await authClient.apiKey.list();
-      const formatted = (res.data ?? []).map((key: any) => ({
+  
+      const res = await fetch("/api/keys");
+      if (!res.ok) throw new Error("Failed to load keys");
+  
+      const data = await res.json();
+  
+      const formatted = (data ?? []).map((key: any) => ({
         id: key.id,
         name: key.name,
         start: key.start,
@@ -57,6 +62,7 @@ export default function ApiKeysPage() {
           ? new Date(key.expiresAt).toLocaleDateString()
           : "No expiry",
       }));
+  
       setApiKeys(formatted);
     } catch (e) {
       console.error("Error loading keys:", e);
@@ -64,6 +70,7 @@ export default function ApiKeysPage() {
       setListLoading(false);
     }
   }
+  
 
   function openCreateConfirm() {
     setConfirmOpen(true);
@@ -72,17 +79,25 @@ export default function ApiKeysPage() {
   async function handleConfirmCreate() {
     setActionLoading(true);
     try {
-      const res = await authClient.apiKey.create({
-        name: `console-${new Date().toISOString().slice(0, 10)}`,
-        expiresIn: 60 * 60 * 24 * 365,
-        prefix: "az_",
-        metadata: { createdFrom: "azen-console" },
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-
-      setCreatedKey(res.data?.key ?? null);
+  
+      if (!res.ok) {
+        throw new Error("Failed to create API key");
+      };
+  
+      const data = await res.json();
+  
+      // plaintext key (shown once)
+      setCreatedKey(data.key ?? null);
+  
       setConfirmOpen(false);
       setCreateOpen(true);
-
+  
       await loadKeys();
     } catch (err) {
       console.error("Create key failed:", err);
@@ -90,6 +105,7 @@ export default function ApiKeysPage() {
       setActionLoading(false);
     }
   }
+  
 
   async function handleCopy() {
     if (!createdKey) return;

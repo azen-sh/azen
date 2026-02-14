@@ -10,7 +10,11 @@ export default async function AuthLayout({
     const user = await getCurrentUser();
 
     if(user) {
+      if(!user.onboardingCompleted) {
+        redirect("/welcome");
+      } else {
         redirect("/dashboard");
+      };
     };
 
     return (

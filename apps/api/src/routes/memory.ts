@@ -19,7 +19,9 @@ const { memory, embeddingJob } = schema;
 
 router.post("/", async (c) => {
     const userId = c.get('userId');
-    if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
+    const organizationId = c.get("organizationId");
+
+    if(!userId || !organizationId) throw new HTTPException(401, { message: "Not authenticated" });
 
     let body;
     try {
@@ -43,6 +45,7 @@ router.post("/", async (c) => {
     .values({
         id: memId,
         userId,
+        organizationId,
         encryptedContent: ciphertext,
         iv,
         tag,
@@ -59,6 +62,7 @@ router.post("/", async (c) => {
         id: jobId,
         memoryId: rec.id,
         userId,
+        organizationId,
         status: "queued",
     }).returning();
 
@@ -70,6 +74,7 @@ router.post("/", async (c) => {
         jobId: jobRec.id,
         memoryId: rec.id,
         text: text,
+        organizationId,
         userId,
     }, {
         attempts: Number(process.env.DLQ_ATTEMPTS ?? 5),
@@ -88,7 +93,9 @@ router.post("/", async (c) => {
 
 router.get("/", async (c) => {
     const userId = c.get('userId');
-    if(!userId) throw new HTTPException(401, { message: "Not authenticated" });
+    const organizationId = c.get("organizationId");
+
+    if(!userId || !organizationId) throw new HTTPException(401, { message: "Not authenticated" });
 
     const pageNum = Number(c.req.query('page') ?? 1);
     const page = isNaN(pageNum) ? 1 : Math.max(1, pageNum);
@@ -101,7 +108,7 @@ router.get("/", async (c) => {
     const countResult = await db
         .select({ total: count() })
         .from(memory)
-        .where(eq(memory.userId, userId));
+        .where(eq(memory.organizationId, organizationId));
 
     const totalCount = Number(countResult[0]?.total ?? 0);
     const totalPages = Math.ceil(totalCount / per);
@@ -117,7 +124,7 @@ router.get("/", async (c) => {
         embedded: memory.embedded,
     })
     .from(memory)
-    .where(eq(memory.userId, userId))
+    .where(eq(memory.organizationId, organizationId))
     .orderBy(desc(memory.createdAt))
     .offset(offset)
     .limit(per);
@@ -142,7 +149,9 @@ router.get("/", async (c) => {
 
 router.get('/:id', async(c) => {
     const userId = c.get('userId');
-    if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
+    const organizationId = c.get("organizationId");
+
+    if(!userId || !organizationId) throw new HTTPException(401, { message: 'Not authenticated' });
     
     const memoryId = c.req.param('id');
     const parsedId = MemoryIdSchema.safeParse(memoryId);
@@ -157,7 +166,7 @@ router.get('/:id', async(c) => {
     .where(
         and(
             eq(memory.id, memoryId),
-            eq(memory.userId, userId)
+            eq(memory.organizationId, organizationId)
         )
     )
     .limit(1);
@@ -182,7 +191,9 @@ router.get('/:id', async(c) => {
 
 router.delete("/:id", async(c) => {
     const userId = c.get('userId');
-    if(!userId) throw new HTTPException(401, { message: 'Not authenticated' });
+    const organizationId = c.get("organizationId");
+
+    if(!userId || !organizationId) throw new HTTPException(401, { message: 'Not authenticated' });
 
     const memoryId = c.req.param('id');
     const parsedId = MemoryIdSchema.safeParse(memoryId);
@@ -197,7 +208,7 @@ router.delete("/:id", async(c) => {
     .where(
         and(
             eq(memory.id, memoryId),
-            eq(memory.userId, userId),
+            eq(memory.organizationId, organizationId),
         )
     )
     .limit(1);
@@ -205,7 +216,7 @@ router.delete("/:id", async(c) => {
         throw new HTTPException(404, { message: "Memory not found or already deleted" });
     };
 
-    const namespace = `user-${rec.userId}`;
+    const namespace = `org-${rec.organizationId}`;
 
     try {
         await deleteMemoryVectors(rec.id, namespace);
@@ -215,8 +226,19 @@ router.delete("/:id", async(c) => {
     };
 
     try {
-        await db.delete(embeddingJob).where(eq(embeddingJob.memoryId, memoryId));
-        await db.delete(memory).where(eq(memory.id, memoryId));
+        await db.delete(embeddingJob).where(
+            and(
+              eq(embeddingJob.memoryId, memoryId),
+              eq(embeddingJob.organizationId, organizationId)
+            )
+          );
+      
+        await db.delete(memory).where(
+            and(
+              eq(memory.id, memoryId),
+              eq(memory.organizationId, organizationId)
+            )
+        );
     } catch (err) {
         console.error("Failed to delete memory row after deleting vectors", err);
         throw new HTTPException(500, { message: 'Failed to delete memory record' });

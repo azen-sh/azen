@@ -6,46 +6,36 @@ export type EmbedPayLoad = {
     memoryId: string;
     text: string;
     userId: string;
+    organizationId: string;
     jobId: string;
 };
 
 const { memory, embeddingJob } = schema;
 
 export async function processEmbeddingJob(payload: EmbedPayLoad) {
-    const text = payload.text;
-    if(!text) throw new Error("no text found to embed");
+    const { text, memoryId, organizationId, jobId } = payload;
+    if (!text) throw new Error("no text found to embed");
+    if (!organizationId) throw new Error("missing organizationId");
 
     const chunks = chunkText(text);
     const vectors = await embedBatch(chunks);
     if(!vectors || vectors.length !== chunks.length ) throw new Error("embedding mismatch");
 
-    const ids = chunks.map((_, i) => `${payload.memoryId}::${i}`);
-    const namespace = `user-${payload.userId}`;
+    const ids = chunks.map((_, i) => `${memoryId}::${i}`);
+    const namespace = `org-${organizationId}`;
     const memoryID = payload.memoryId;
 
     await upsertVectors(ids, vectors, namespace, memoryID);
 
-    //to update metadata in postgres db - 
+    // mark memory embedded
     await db
-    .update(memory)
-    .set({
-        embedded: true,
-    })
-    .where(eq(memory.id, memoryID));
+      .update(memory)
+      .set({ embedded: true })
+      .where(eq(memory.id, memoryId));
 
-    if(payload.jobId) {
-        await db
-        .update(embeddingJob)
-        .set({
-            status: "done",
-        })
-        .where(eq(embeddingJob.id, memoryID));
-    } else {
-        await db
-        .update(embeddingJob)
-        .set({
-            status: "done",
-        })
-        .where(eq(embeddingJob.memoryId, memoryID));
-    };
+  // mark job done
+    await db
+      .update(embeddingJob)
+      .set({ status: "done" })
+      .where(eq(embeddingJob.id, jobId));
 };

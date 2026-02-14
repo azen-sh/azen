@@ -6,6 +6,7 @@ export type User = {
     name: string;
     email: string;
     verified: boolean;
+    onboardingCompleted: boolean;
     image: string | null;
 }
 
@@ -23,6 +24,7 @@ export async function getCurrentUser(): Promise<User | null> {
         name: user.name ?? "Account",
         email: user.email ?? "",
         verified: user.emailVerified,
+        onboardingCompleted: user.hasCompletedOnboarding,
         image: user.image ?? null,
     };
 };

@@ -43,6 +43,48 @@
       "when": 1765732680794,
       "tag": "0005_pale_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770200230023,
+      "tag": "0006_empty_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770219838158,
+      "tag": "0007_sticky_shinko_yamashiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770220073074,
+      "tag": "0008_melodic_lily_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1770470574157,
+      "tag": "0009_melodic_forgotten_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1770646308717,
+      "tag": "0010_giant_magus",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1770897302206,
+      "tag": "0011_magenta_wendigo",
+      "breakpoints": true
     }
   ]
 }

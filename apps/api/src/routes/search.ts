@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { db, schema, inArray } from "db";
+import { db, schema, inArray, and, eq } from "db";
 import { embedBatch } from "../lib/vector";
 import { queryVectors } from "../lib/vector";
 import { decryptText } from "../lib/encrypt";
@@ -17,7 +17,9 @@ const SearchInputSchema = z.object({
 
 router.post("/", async (c) => {
     const userId = c.get("userId");
-    if(!userId) throw new HTTPException(401, { message: "Not authenticated"});
+    const organizationId = c.get("organizationId");
+
+    if(!userId || !organizationId) throw new HTTPException(401, { message: "Not authenticated"});
 
     let body;
     try {
@@ -37,7 +39,8 @@ router.post("/", async (c) => {
     const [qEmb] = await embedBatch([query]);
     if(!qEmb) throw new HTTPException(500, { message: "Failed to embed query" });
 
-    const matches = await queryVectors(qEmb, topK, `user-${userId}`);
+    const namespace = `org-${organizationId}`;
+    const matches = await queryVectors(qEmb, topK, namespace);
 
     const memIds = Array.from(
         new Set(
@@ -59,7 +62,12 @@ router.post("/", async (c) => {
             embedded: memory.embedded,
         })
         .from(memory)
-        .where(inArray(memory.id, memIds))
+        .where(
+            and(
+              inArray(memory.id, memIds),
+              eq(memory.organizationId, organizationId)
+            )
+          );
     };
 
     const orderedMems = memIds

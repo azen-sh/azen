@@ -9,9 +9,14 @@ const SYNC_INTERVAL = 10 * 60 * 1000;
 
 function parseKey(k: string) {
   const parts = k.split(":");
-  if (parts.length < 5) return null;
-  const [, userId, apiKeyId, date, routeGroup] = parts;
-  return { userId, apiKeyId, date, routeGroup };
+  if (parts.length < 6) return null;
+  const [, organizationId, userId, apiKeyId, date, routeGroup] = parts;
+
+  if (!organizationId || !userId || !apiKeyId || !date || !routeGroup) {
+    return null;
+  };
+
+  return { organizationId, userId, apiKeyId, date, routeGroup };
 }
 
 async function processBatch(keys: string[]) {
@@ -53,6 +58,7 @@ async function processBatch(keys: string[]) {
     rows.push({
       id: randomUUID(),
       userId: parsed.userId,
+      organizationId: parsed.organizationId,
       apiKeyId: parsed.apiKeyId,
       date: parsed.date,
       routeGroup: parsed.routeGroup,
@@ -66,20 +72,39 @@ async function processBatch(keys: string[]) {
 
   if (!rows.length) return;
 
-  const sqlChunks: any[] = [];
-  
-  rows.forEach((row, index) => {
-    if (index > 0) {
-      sqlChunks.push(sql`, `);
-    }
-    sqlChunks.push(sql`(${row.id}, ${row.userId}, ${row.apiKeyId}, ${row.date}, ${row.routeGroup}, ${row.totalRequests}, ${row.successCount}, ${row.errorCount}, ${row.memoryCount}, ${row.searchCount})`);
-  });
+  const values = rows.map((row) =>
+    sql`(
+      ${row.id},
+      ${row.organizationId},
+      ${row.userId},
+      ${row.apiKeyId},
+      ${row.date},
+      ${row.routeGroup},
+      ${row.totalRequests},
+      ${row.successCount},
+      ${row.errorCount},
+      ${row.memoryCount},
+      ${row.searchCount}
+    )`
+  );
 
   const query = sql`
     INSERT INTO api_usage
-      (id, user_id, api_key_id, date, route_group, total_requests, success_count, error_count, memory_count, search_count)
-    VALUES ${sql.join(sqlChunks, sql.raw(''))}  
-    ON CONFLICT (user_id, api_key_id, date, route_group)
+      (
+        id,
+        organization_id,
+        user_id,
+        api_key_id,
+        date,
+        route_group,
+        total_requests,
+        success_count,
+        error_count,
+        memory_count,
+        search_count
+      )
+    VALUES ${sql.join(values, sql`, `)}
+    ON CONFLICT (organization_id, user_id, api_key_id, date, route_group)
     DO UPDATE SET
       total_requests = api_usage.total_requests + EXCLUDED.total_requests,
       success_count = api_usage.success_count + EXCLUDED.success_count,
