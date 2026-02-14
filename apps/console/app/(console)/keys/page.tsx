@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { Copy, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { authClient } from "../../lib/auth-client";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +50,10 @@ export default function ApiKeysPage() {
       setListLoading(true);
   
       const res = await fetch("/api/keys");
-      if (!res.ok) throw new Error("Failed to load keys");
+      if (!res.ok) {
+        toast.error("Failed to load keys");
+        return;
+      }
   
       const data = await res.json();
   
@@ -65,7 +69,7 @@ export default function ApiKeysPage() {
   
       setApiKeys(formatted);
     } catch (e) {
-      console.error("Error loading keys:", e);
+      toast.error("Failed to load keys");
     } finally {
       setListLoading(false);
     }
@@ -87,20 +91,18 @@ export default function ApiKeysPage() {
       });
   
       if (!res.ok) {
-        throw new Error("Failed to create API key");
+        toast.error("Failed to create API key");
       };
   
       const data = await res.json();
   
-      // plaintext key (shown once)
       setCreatedKey(data.key ?? null);
-  
       setConfirmOpen(false);
       setCreateOpen(true);
   
       await loadKeys();
     } catch (err) {
-      console.error("Create key failed:", err);
+      toast.error("Failed to create API key");
     } finally {
       setActionLoading(false);
     }
@@ -114,7 +116,7 @@ export default function ApiKeysPage() {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("copy failed", err);
+      toast.error("Failed to copy key");
     }
   }
 
@@ -129,7 +131,7 @@ export default function ApiKeysPage() {
       await authClient.apiKey.delete({ keyId: keyToDelete.id });
       await loadKeys();
     } catch (e) {
-      console.error("Delete failed:", e);
+      toast.error("Delete failed");
     } finally {
       setDeleteOpen(false);
       setKeyToDelete(null);
