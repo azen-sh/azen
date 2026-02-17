@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { Copy, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { authClient } from "../../lib/auth-client";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
