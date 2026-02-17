@@ -17,7 +17,6 @@ import {
   LayoutDashboard,
   KeyRound,
   Database,
-  Logs,
   CreditCard,
   SlidersHorizontal,
   HelpCircle,
@@ -62,7 +61,6 @@ const items = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "API Keys", href: "/keys", icon: KeyRound },
   { title: "Memories", href: "/memories", icon: Database },
-  { title: "Requests", href: "/requests", icon: Logs },
   { title: "Billing", href: "/billing", icon: CreditCard },
 ];
 
@@ -250,13 +248,13 @@ export function AppSidebar(
                 </Link>
 
                 <Link
-                  href="/settings/memory"
+                  href="/settings/organization"
                   className={cn(
                     "block py-1 text-neutral-400 hover:text-white transition",
-                    pathname === "/settings/memory" && "text-white"
+                    pathname === "/settings/organization" && "text-white"
                   )}
                 >
-                  Memory
+                  organization
                 </Link>
               </div>
             )}
