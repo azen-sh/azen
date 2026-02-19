@@ -2,16 +2,15 @@ import { Hono} from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
-import { verifyApiKey } from "./middlewares/apiAuthMiddleware";
 import memoryRoute from "./routes/memory";
 import searchRoute from "./routes/search";
 import usageRoute from "./routes/usage";
 import fs from "fs";
 import path from "path";
 import { trackUsage } from "./middlewares/trackUsage";
-import { authMiddleware } from "./middlewares/authMiddleware";
 import { allowedOrigins } from "./config";
 import { errorCodes } from "./lib/errorcodes";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app = new Hono();
 const PORT  = Number(process.env.PORT || 8080);
@@ -42,7 +41,7 @@ app.use('*', cors({
     allowHeaders: ['Content-Type'],
     credentials: true,
 }));
-app.use("/api/v1/memory/*", verifyApiKey, trackUsage);
+app.use("/api/v1/memory/*", authMiddleware, trackUsage);
 app.use("/api/v1/usage", authMiddleware);
 
 app.get("/", () => {
